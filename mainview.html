@@ -1,7 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brascontrol Smart Cam — Dashboard | Brascontrol ITS</title>
+  <link rel="icon" type="image/png" href="/assets/favicon.png?v=2">
     <style>
 
     .spinner {
@@ -19,47 +22,783 @@
     }
 
     :root {
+      --bg-canvas: #f5eff0;
+      --bg-sidebar: #ffffff;
+      --bg-panel: #ffffff;
       --bg-primary: #ffffff;
-      --bg-secondary: #f8f9fa;
-      --bg-tertiary: #f9f9f9;
-      --text-primary: #333333;
-      --text-secondary: #666666;
-      --text-muted: #aaaaaa;
-      --border-color: #cccccc;
-      --border-light: #eeeeee;
-      --accent-primary: #007bff;
-      --accent-hover: #0056b3;
-      --accent-danger: #dc3545;
-      --accent-danger-hover: #c82333;
-      --accent-success: #28a745;
-      --shadow: rgba(0, 0, 0, 0.1);
-      --modal-bg: rgba(0, 0, 0, 0.7);
+      --bg-secondary: #faf6f7;
+      --bg-tertiary: #f4ecee;
+      --text-primary: #1e2024;
+      --text-secondary: #5c626d;
+      --text-muted: #8a909a;
+      --border-color: #eadde0;
+      --border-light: #f2e8ea;
+      --brand: #891c2e;
+      --brand-hover: #6d1423;
+      --brand-soft: #fdf2f4;
+      --accent-primary: #891c2e;
+      --accent-hover: #6d1423;
+      --accent-danger: #c92a2a;
+      --accent-danger-hover: #a61e1e;
+      --accent-success: #15803d;
+      --kpi-green-bg: linear-gradient(135deg, #f2fbf5 0%, #e5f6eb 100%);
+      --kpi-rose-bg: linear-gradient(135deg, #fdf6f7 0%, #f7eaed 100%);
+      --kpi-amber-bg: linear-gradient(135deg, #fefcf3 0%, #faefd8 100%);
+      --table-head-bg: #f6e8eb;
+      --shadow: rgba(45, 20, 26, 0.06);
+      --modal-bg: rgba(18, 16, 18, 0.72);
     }
 
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg-primary: #1a1a1a;
-        --bg-secondary: #2d2d2d;
-        --bg-tertiary: #252525;
-        --text-primary: #ffffff;
-        --text-secondary: #cccccc;
-        --text-muted: #888888;
-        --border-color: #444444;
-        --border-light: #333333;
-        --accent-primary: #0d6efd;
-        --accent-hover: #0b5ed7;
-        --accent-danger: #dc3545;
-        --accent-danger-hover: #bb2d3b;
-        --accent-success: #198754;
-        --shadow: rgba(0, 0, 0, 0.3);
-        --modal-bg: rgba(0, 0, 0, 0.8);
-      }
+    body.dark {
+      --bg-canvas: #0f1115;
+      --bg-sidebar: #161920;
+      --bg-panel: #1a1e26;
+      --bg-primary: #202530;
+      --bg-secondary: #161a22;
+      --bg-tertiary: #252b38;
+      --text-primary: #f3f4f6;
+      --text-secondary: #a2aab8;
+      --text-muted: #7b8494;
+      --border-color: #2d3442;
+      --border-light: #252b37;
+      --brand: #d6334c;
+      --brand-hover: #eb415b;
+      --brand-soft: #2c171d;
+      --accent-primary: #c92a44;
+      --accent-hover: #e03652;
+      --accent-danger: #e03131;
+      --accent-danger-hover: #c92a2a;
+      --accent-success: #22c55e;
+      --kpi-green-bg: linear-gradient(135deg, #13261c 0%, #173022 100%);
+      --kpi-rose-bg: linear-gradient(135deg, #25171c 0%, #2e1b21 100%);
+      --kpi-amber-bg: linear-gradient(135deg, #292012 0%, #332714 100%);
+      --table-head-bg: #2a181e;
+      --shadow: rgba(0, 0, 0, 0.35);
+      --modal-bg: rgba(0, 0, 0, 0.82);
     }
+
+    * { box-sizing: border-box; }
 
     body {
-      background-color: var(--bg-primary);
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-canvas);
       color: var(--text-primary);
-      font-family: sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Brascontrol Modern Collapsible Sidebar (Concept UI) */
+    .bc-sidebar {
+      width: 272px;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
+      padding: 16px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      flex-shrink: 0;
+      overflow-y: auto;
+      overflow-x: visible;
+      z-index: 80;
+      box-shadow: 4px 0 24px rgba(15, 23, 42, 0.035);
+      transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1), padding 0.22s ease;
+      scrollbar-width: thin;
+    }
+    .bc-sidebar.collapsed {
+      width: 78px;
+      padding: 16px 10px 14px;
+    }
+    .bc-sb-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 4px 6px 14px;
+      border-bottom: 1px solid var(--border-light);
+      margin-bottom: 8px;
+      position: relative;
+    }
+    .bc-sidebar.collapsed .bc-sb-header {
+      justify-content: center;
+      padding: 4px 0 14px;
+    }
+    .bc-brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      text-decoration: none;
+      min-width: 0;
+      flex: 1;
+    }
+    .bc-sidebar.collapsed .bc-brand {
+      justify-content: center;
+      flex: 0;
+    }
+    .bc-brand-mark {
+      height: 36px;
+      width: auto;
+      max-width: 34px;
+      object-fit: contain;
+      flex-shrink: 0;
+      display: block;
+      background: transparent;
+      border-radius: 0;
+      box-shadow: none;
+      transition: transform 0.16s ease, filter 0.16s ease;
+    }
+    body.dark .bc-brand-mark {
+      filter: brightness(1.18) saturate(1.1);
+    }
+    .bc-brand:hover .bc-brand-mark {
+      transform: scale(1.04);
+    }
+    .bc-brand-copy {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      gap: 2px;
+    }
+    .bc-brand-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.2px;
+      line-height: 1.15;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .bc-brand-sub {
+      font-size: 10px;
+      color: var(--brand);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      white-space: nowrap;
+    }
+    .bc-sidebar.collapsed .bc-brand-copy,
+    .bc-sidebar.collapsed .bc-sb-more-wrap {
+      display: none;
+    }
+    .bc-sb-icon-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      flex-shrink: 0;
+    }
+    .bc-sb-icon-btn:hover {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+    /* Inline Quick Search */
+    .bc-sb-search {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      padding: 8px 11px;
+      margin: 0 2px 10px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .bc-sb-search:focus-within {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(137, 28, 46, 0.1);
+      background: var(--bg-primary);
+    }
+    .bc-sb-search svg {
+      width: 16px;
+      height: 16px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .bc-sb-search input {
+      border: none;
+      background: transparent;
+      outline: none;
+      color: var(--text-primary);
+      font-size: 13px;
+      width: 100%;
+      min-width: 0;
+    }
+    .bc-sb-search input::placeholder {
+      color: var(--text-muted);
+    }
+    .bc-sidebar.collapsed .bc-sb-search {
+      justify-content: center;
+      padding: 9px 0;
+      cursor: pointer;
+    }
+    .bc-sidebar.collapsed .bc-sb-search input {
+      display: none;
+    }
+    /* Group Headers (Collapsible) */
+    .bc-nav-group-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 10px 10px 4px;
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.75px;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+    }
+    .bc-nav-group-head:hover {
+      color: var(--text-secondary);
+    }
+    .bc-nav-group-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .bc-group-chev {
+      width: 12px;
+      height: 12px;
+      transition: transform 0.18s ease;
+    }
+    .bc-nav-group.closed .bc-group-chev {
+      transform: rotate(-90deg);
+    }
+    .bc-nav-group.closed .bc-nav-group-body {
+      display: none;
+    }
+    .bc-sidebar.collapsed .bc-nav-group-head {
+      display: none;
+    }
+    /* Nav Item Row */
+    .bc-nav-row {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .bc-nav-item {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9.5px 12px;
+      border-radius: 11px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid transparent;
+      background: transparent;
+      text-align: left;
+      width: 100%;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .bc-nav-item:hover {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+    .bc-nav-row:hover .bc-nav-item:not(.active) {
+      border-color: var(--border-light);
+      background: var(--bg-secondary);
+    }
+    .bc-nav-item.active {
+      background: var(--brand-soft);
+      color: var(--brand);
+      font-weight: 700;
+    }
+    .bc-nav-item.active::before {
+      content: "";
+      position: absolute;
+      left: -14px;
+      top: 8px;
+      bottom: 8px;
+      width: 3.5px;
+      border-radius: 0 4px 4px 0;
+      background: var(--brand);
+    }
+    .bc-sidebar.collapsed .bc-nav-item {
+      justify-content: center;
+      padding: 11px 0;
+    }
+    .bc-sidebar.collapsed .bc-nav-item.active::before {
+      left: -10px;
+    }
+    .bc-sb-ico {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: currentColor;
+      opacity: 0.88;
+    }
+    .bc-nav-item.active .bc-sb-ico {
+      opacity: 1;
+    }
+    .bc-sb-ico svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 1.85;
+    }
+    .bc-sb-label {
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .bc-sidebar.collapsed .bc-sb-label {
+      display: none;
+    }
+    /* Notification / Count Badges */
+    .bc-sb-badge {
+      font-size: 11px;
+      font-weight: 800;
+      min-width: 21px;
+      height: 21px;
+      padding: 0 6.5px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #ef4444;
+      color: #ffffff;
+      line-height: 1;
+      box-shadow: 0 2px 6px rgba(239, 68, 68, 0.32);
+    }
+    .bc-sb-badge.soft {
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+      box-shadow: none;
+    }
+    .bc-sb-badge.green {
+      background: #16a34a;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(22, 163, 74, 0.28);
+    }
+    .bc-sidebar.collapsed .bc-sb-badge {
+      position: absolute;
+      top: 3px;
+      right: 9px;
+      min-width: 17px;
+      height: 17px;
+      font-size: 9.5px;
+      padding: 0 4.5px;
+      border: 2px solid var(--bg-sidebar);
+    }
+    /* Quick '+' Action Button & Floating Popover */
+    .bc-sb-plus {
+      position: absolute;
+      right: 8px;
+      width: 23px;
+      height: 23px;
+      border-radius: 50%;
+      border: 1px solid var(--border-color);
+      background: var(--bg-primary);
+      color: var(--brand);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0.85;
+      transition: all 0.15s ease;
+      z-index: 3;
+    }
+    .bc-sb-plus:hover {
+      opacity: 1;
+      background: var(--brand);
+      color: #fff;
+      border-color: var(--brand);
+      transform: scale(1.06);
+    }
+    .bc-sidebar.collapsed .bc-sb-plus {
+      display: none;
+    }
+    .bc-sb-popover {
+      position: absolute;
+      left: calc(100% - 16px);
+      top: 34px;
+      min-width: 215px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 13px;
+      padding: 7px;
+      box-shadow: 0 14px 36px rgba(15, 23, 42, 0.16);
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      z-index: 250;
+    }
+    .bc-sb-popover.open {
+      display: flex;
+    }
+    .bc-sb-pop-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 11px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-primary);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: left;
+      width: 100%;
+    }
+    .bc-sb-pop-item:hover {
+      background: var(--bg-secondary);
+      color: var(--brand);
+    }
+    .bc-sb-pop-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+    }
+    .bc-pop-dot {
+      width: 6.5px;
+      height: 6.5px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    /* Live Camera Tree (All Equipment Hierarchy) */
+    .bc-cam-tree {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 2px 0 4px;
+    }
+    .bc-sidebar.collapsed .bc-cam-tree-group {
+      display: none;
+    }
+    .bc-tree-cam {
+      display: flex;
+      flex-direction: column;
+    }
+    .bc-tree-cam-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 11px;
+      border-radius: 9px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+      transition: background 0.14s, color 0.14s;
+    }
+    .bc-tree-cam-btn:hover, .bc-tree-cam.open .bc-tree-cam-btn {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+    .bc-tree-shape {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      border: 2.2px solid #94a3b8;
+      flex-shrink: 0;
+    }
+    .bc-tree-shape.online { border-color: #16a34a; background: rgba(22, 163, 74, 0.15); }
+    .bc-tree-shape.auth { border-color: #e11d48; border-radius: 3px; }
+    .bc-tree-shape.wait { border-color: #d97706; }
+    .bc-tree-children {
+      display: none;
+      flex-direction: column;
+      margin-left: 16px;
+      padding-left: 12px;
+      border-left: 1.5px solid var(--border-color);
+      gap: 2px;
+      margin-top: 2px;
+      margin-bottom: 4px;
+    }
+    .bc-tree-cam.open .bc-tree-children {
+      display: flex;
+    }
+    .bc-tree-sub {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 8px;
+      font-size: 11.8px;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
+    }
+    .bc-tree-sub:hover {
+      color: var(--brand);
+      background: var(--bg-secondary);
+    }
+    .bc-tree-sub-box {
+      width: 9px;
+      height: 9px;
+      border: 1.5px solid currentColor;
+      border-radius: 2.5px;
+      opacity: 0.65;
+    }
+    /* Collapsed Tooltip */
+    .bc-sidebar.collapsed .bc-nav-item[data-tip]:hover::after {
+      content: attr(data-tip);
+      position: fixed;
+      left: 84px;
+      background: #18181b;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 8px;
+      white-space: nowrap;
+      z-index: 999;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+      pointer-events: none;
+    }
+    /* Bottom Footer & Collapse Rail Toggle */
+    .bc-sidebar-footer {
+      margin-top: auto;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-light);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .bc-sidebar.collapsed .bc-sidebar-footer {
+      justify-content: center;
+    }
+    .bc-sb-status-pill {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-weight: 600;
+      min-width: 0;
+    }
+    .bc-sb-status-dot {
+      width: 7.5px;
+      height: 7.5px;
+      border-radius: 50%;
+      background: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.18);
+      flex-shrink: 0;
+    }
+    .bc-sidebar.collapsed .bc-sb-status-pill {
+      display: none;
+    }
+    .bc-sb-collapse-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      border: 1px solid var(--border-light);
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.16s ease;
+      flex-shrink: 0;
+    }
+    .bc-sb-collapse-btn:hover {
+      background: var(--brand-soft);
+      color: var(--brand);
+      border-color: var(--brand);
+    }
+    .bc-sb-collapse-btn svg {
+      width: 16px;
+      height: 16px;
+      transition: transform 0.22s ease;
+    }
+    .bc-sidebar.collapsed .bc-sb-collapse-btn svg {
+      transform: rotate(180deg);
+    }
+    .bc-main {
+      flex: 1;
+      padding: 16px 20px;
+      min-width: 0;
+      max-width: 1740px;
+      width: 100%;
+    }
+    .bc-panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 26px 28px;
+      box-shadow: 0 2px 12px var(--shadow);
+      min-height: calc(100vh - 32px);
+    }
+    .bc-topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .bc-heading h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0.25px;
+      text-transform: uppercase;
+      color: var(--text-primary);
+    }
+    .bc-heading p {
+      margin: 5px 0 0;
+      font-size: 12.5px;
+      color: var(--text-secondary);
+    }
+    .bc-top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .bc-btn {
+      padding: 9px 16px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid var(--border-color);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.15s;
+    }
+    .bc-btn:hover { filter: brightness(0.97); }
+    .bc-btn-primary {
+      background: var(--brand);
+      color: #ffffff;
+      border-color: var(--brand);
+    }
+    .bc-btn-primary:hover { background: var(--brand-hover); }
+    .bc-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .bc-kpi-card {
+      background: var(--kpi-rose-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 14px 16px;
+      text-decoration: none;
+      display: block;
+      transition: transform 0.12s ease;
+    }
+    a.bc-kpi-card:hover { transform: translateY(-2px); }
+    .bc-kpi-card.green { background: var(--kpi-green-bg); border-color: rgba(21,128,61,0.22); }
+    .bc-kpi-card.amber { background: var(--kpi-amber-bg); border-color: rgba(180,83,9,0.22); }
+    .bc-kpi-label {
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+    .bc-kpi-val {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--brand);
+    }
+    .bc-kpi-card.green .bc-kpi-val { color: var(--accent-success); }
+    .bc-kpi-card.amber .bc-kpi-val { color: #9a5b06; }
+    body.dark .bc-kpi-card.amber .bc-kpi-val { color: #f59e0b; }
+
+    .bc-section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 22px 0 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .bc-section-title {
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.55px;
+      color: var(--brand);
+      margin: 0;
+    }
+    .bc-filter-pills {
+      display: inline-flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .bc-pill {
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+    .bc-pill.active {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #ffffff;
+    }
+    .bc-card-box {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-top: 18px;
+    }
+    @media (max-width: 900px) {
+      body { flex-direction: column; }
+      .bc-sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 12px;
+      }
+      .bc-brand { border-bottom: none; margin-bottom: 0; padding-bottom: 4px; width: 100%; }
+      .bc-nav-label, .bc-sidebar-footer { display: none; }
+      .bc-nav-item { width: auto; padding: 7px 10px; font-size: 12.5px; }
+      .bc-main { padding: 10px; }
+      .bc-panel { padding: 16px; border-radius: 14px; }
     }
 
     .tooltip {
@@ -465,20 +1204,24 @@
     }
 
     .camera-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+      gap: 18px;
     }
 
     .camera-card {
-      width: 480px;
+      width: 100%;
       border: 1px solid var(--border-color);
-      border-radius: 8px;
+      border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 2px 4px var(--shadow);
+      box-shadow: 0 2px 8px var(--shadow);
       text-align: center;
-      font-family: sans-serif;
       background: var(--bg-primary);
+      transition: transform 0.14s ease, box-shadow 0.14s ease;
+    }
+    .camera-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px var(--shadow);
     }
 
     .camera-card .video-container {
@@ -488,11 +1231,76 @@
       position: relative;
     }
 
-    .camera-card video {
+    .camera-card video,
+    .camera-card .bc-live-img,
+    .camera-card .bc-pause-canvas {
       width: 100%;
       height: 100%;
       object-fit: contain;
-      background: black;
+      background: #050608;
+      display: block;
+    }
+
+    .bc-player-bar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 6px 8px;
+      background: linear-gradient(0deg, rgba(8, 10, 14, 0.88) 0%, rgba(8, 10, 14, 0.45) 75%, transparent 100%);
+      z-index: 7;
+    }
+    .camera-card .bc-player-btn {
+      padding: 4px 9px !important;
+      font-size: 11.5px !important;
+      font-weight: 700 !important;
+      border-radius: 6px !important;
+      border: 1px solid rgba(255, 255, 255, 0.22) !important;
+      background: rgba(20, 23, 30, 0.85) !important;
+      color: #f8fafc !important;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      line-height: 1.2;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .camera-card .bc-player-btn:hover {
+      background: var(--brand) !important;
+      border-color: var(--brand) !important;
+    }
+    .camera-card .bc-player-btn.active-mode {
+      background: var(--brand) !important;
+      border-color: var(--brand) !important;
+      color: #fff !important;
+    }
+    .camera-card .bc-player-btn.paused-state {
+      background: #d97706 !important;
+      border-color: #f59e0b !important;
+      color: #fff !important;
+    }
+    .bc-paused-banner {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(15, 17, 22, 0.86);
+      border: 1px solid #f59e0b;
+      color: #fef3c7;
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      z-index: 6;
+      pointer-events: none;
+      white-space: nowrap;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.45);
     }
 
     .camera-card .video-placeholder {
@@ -1296,110 +2104,348 @@
   </style>
 </head>
 <body>
-  <div id="cameraList" class="camera-grid"></div>
-  <div class="multi-view-wrapper">
-    <button onclick="openSettingsModal()">Settings</button>
-    <button onclick="toggleMultiView()">Multi View</button>
-    <div class="date-picker-container">
-      <select id="streamDateSelect" style="padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 14px; background: var(--bg-primary); color: var(--text-primary);">
-        <option value="">Loading dates...</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="form-section">
-    <form id="addCameraForm">
-      <input type="text" name="cam_name" placeholder="Camera Name" required>
-      <input type="text" name="src" placeholder="RTSP Link" required>
-      <button type="submit">Add Camera</button>
-    </form>
-    <div class="analyse-section" style="margin-top: 15px;">
-      <form id="analyseFootageForm">
-        <input type="file" id="videoFileInput" accept="video/*" required>
-        <button type="submit" id="analyseBtn">
-          <span class="btn-spinner" style="display:none;"></span>
-          <span class="btn-text">Analyse Footage</span>
+  <aside class="bc-sidebar" id="bcSidebar">
+    <div class="bc-sb-header">
+      <a class="bc-brand" href="/" title="Brascontrol Smart Cam">
+        <img class="bc-brand-mark" src="/assets/brascontrol-b.png?v=2" alt="Brascontrol" />
+        <div class="bc-brand-copy">
+          <span class="bc-brand-title">Brascontrol</span>
+          <span class="bc-brand-sub">Smart Cam · ITS</span>
+        </div>
+      </a>
+      <div class="bc-sb-more-wrap" style="position:relative;">
+        <button type="button" class="bc-sb-icon-btn" onclick="toggleSbPopover(event, 'sbHeaderPop')" title="Opções rápidas">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="12" cy="19" r="1.3"/></svg>
         </button>
-      </form>
-    </div>
-    <div id="analyseProgressWrapper" style="display:none; margin-top:10px; width:100%;">
-      <div class="spinner" style="margin-bottom:6px;"></div>
-      <small id="analyseProgressText">Uploading 0%</small>
-    </div>
-    <div class="max-storage-control" style="display: flex; flex-direction: column; align-items: flex-start; margin-top: 10px;">
-      <label for="maxStorageInput" style="margin-bottom: 4px;">Set Max Storage (GB):</label>
-      <div style="display: flex; align-items: center; gap: 6px;">
-        <input type="number" id="maxStorageInput" min="1" style="width: 120px;">
-        <button type="button" id="setMaxStorageBtn">Set</button>
+        <div class="bc-sb-popover" id="sbHeaderPop" style="left:auto; right:0; top:34px;">
+          <button type="button" class="bc-sb-pop-item" onclick="closeAllSbPopovers(); toggleMultiView();">
+            <span class="bc-sb-pop-left"><span class="bc-pop-dot" style="background:#2563eb;"></span>Multi-View Ao Vivo</span>
+          </button>
+          <button type="button" class="bc-sb-pop-item" onclick="closeAllSbPopovers(); openScannerModal();">
+            <span class="bc-sb-pop-left"><span class="bc-pop-dot" style="background:#16a34a;"></span>Varrer Câmeras na Rede</span>
+          </button>
+          <button type="button" class="bc-sb-pop-item" onclick="closeAllSbPopovers(); toggleBrascontrolTheme();">
+            <span class="bc-sb-pop-left"><span class="bc-pop-dot" style="background:#d97706;"></span>Alternar Tema Claro/Escuro</span>
+          </button>
+          <button type="button" class="bc-sb-pop-item" onclick="closeAllSbPopovers(); toggleSidebarRail();">
+            <span class="bc-sb-pop-left"><span class="bc-pop-dot" style="background:#891c2e;"></span>Recolher Menu Lateral</span>
+          </button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="events-section">
-    <h3>Detected Events</h3>
-    <div class="events-filter">
-      <div class="filter-group">
-        <label for="cameraFilter">Camera:</label>
-        <select id="cameraFilter">
-          <option value="">All Cameras</option>
-        </select>
-      </div>
-      
-      <div class="filter-group">
-        <label for="eventDateFilter">Date:</label>
-        <select id="eventDateFilter">
-          <option value="">Loading dates...</option>
-        </select>
-      </div>
-      
-      <label style="display: flex; align-items: center; gap: 6px; margin-left: 10px;">
-        <input type="checkbox" id="alertsOnlyCheckbox">
-        Alerts Only
-      </label>
-      
-  <div style="display: flex; align-items: center; gap: 6px; margin-left: 10px;">
-    <div style="position: relative; display: flex; align-items: center;">
-      <label for="imageUpload" style="cursor: pointer; padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); display: flex; align-items: center; justify-content: center;" title="Search by image">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-        <circle cx="8.5" cy="8.5" r="1.5"></circle>
-        <polyline points="21 15 16 10 5 21"></polyline>
-      </svg>
-      </label>
-      <label for="faceUpload" style="cursor: pointer; padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); display: flex; align-items: center; justify-content: center;" title="Search by face">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="8" r="4"></circle>
-          <path d="M6 20c0-4 3-6 6-6s6 2 6 6"></path>
-        </svg>
-      </label>
-      <input type="file" id="faceUpload" accept="image/*" style="display: none;">
-      <span class="tooltip">
-        <span class="tooltip-icon">?</span>
-        <span class="tooltiptext">Use an image or face to find similar objects in your footage.</span>
+    <div class="bc-sb-search" onclick="expandSidebarAndSearch()" title="Buscar câmera, IP ou placa...">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="bcSidebarSearchInput" placeholder="Buscar câmera ou placa..." oninput="onSidebarSearchInput(this.value)" onkeydown="onSidebarSearchKey(event, this.value)" />
+    </div>
+
+    <a class="bc-nav-item active" href="/" data-tip="Dashboard">
+      <span class="bc-sb-ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.8"/><rect x="14" y="3" width="7" height="7" rx="1.8"/><rect x="14" y="14" width="7" height="7" rx="1.8"/><rect x="3" y="14" width="7" height="7" rx="1.8"/></svg>
       </span>
-      <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+      <span class="bc-sb-label">Dashboard</span>
+    </a>
+
+    <div class="bc-nav-row">
+      <a class="bc-nav-item" href="#equipamentos" data-tip="Equipamentos / Câmeras" style="padding-right:38px;">
+        <span class="bc-sb-ico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3.5"/></svg>
+        </span>
+        <span class="bc-sb-label">Equipamentos</span>
+        <span class="bc-sb-badge green" id="sbBadgeOnlineCams">0</span>
+      </a>
+      <button type="button" class="bc-sb-plus" onclick="toggleSbPopover(event, 'sbCamActionsPop')" title="Ações rápidas de câmera">+</button>
+      <div class="bc-sb-popover" id="sbCamActionsPop">
+        <button type="button" class="bc-sb-pop-item" onclick="closeAllSbPopovers(); openScannerModal();">
+          <span class="bc-sb-pop-left"><span class="bc-pop-dot" style="background:#2563eb;"></span>Escanear Rede (Auto)</span>
+        </button>
+        <button type="button" class="bc-sb-pop-item" onclick="closeAllSbPopovers(); pauseAllCameras(true);">
+          <span class="bc-sb-pop-left"><span class="bc-pop-dot" style="background:#ec4899;"></span>Pausar Vídeos na Tela</span>
+        </button>
+        <button type="button" class="bc-sb-pop-item" onclick="closeAllSbPopovers(); toggleMultiView();">
+          <span class="bc-sb-pop-left"><span class="bc-pop-dot" style="background:#94a3b8;"></span>Abrir Multi-View</span>
+          <span style="opacity:0.6;">›</span>
+        </button>
+      </div>
     </div>
 
-    <input type="text" id="imageSearchInput" placeholder="Search text..." style="padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary);">
+    <a class="bc-nav-item" href="/veiculos" data-tip="Busca de Veículos (Cor / Placa / Modelo)">
+      <span class="bc-sb-ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
+      </span>
+      <span class="bc-sb-label">Busca de Veículos</span>
+    </a>
 
-    <button onclick="searchEventImages()" id="searchButton" style="padding: 6px 12px; background: var(--accent-primary); color: white; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
-      <span id="searchText">Search</span>
-      <div id="searchSpinner" class="spinner" style="display: none;"></div>
-    </button>
+    <a class="bc-nav-item" href="/galeria" data-tip="Galeria de Placas LPR">
+      <span class="bc-sb-ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      </span>
+      <span class="bc-sb-label">Galeria de Placas</span>
+      <span class="bc-sb-badge" id="sbBadgePlates">0</span>
+    </a>
 
-    <button onclick="clearSearch()" id="clearButton" style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.2s;">Clear</button>
-  </div>
-  <div id="eventImagesContainer">
-    <p style="text-align:center; color:#666; width:100%;">No events detected yet.</p>
-  </div>
+    <a class="bc-nav-item" href="#eventos" data-tip="Eventos e Notificações">
+      <span class="bc-sb-ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </span>
+      <span class="bc-sb-label">Eventos & Alertas</span>
+    </a>
 
-  <div style="width:100vw; display:flex; justify-content:center; margin-top:12px;">
-    <button onclick="loadMoreEventImages()" id="loadMoreEventsBtn" style="padding: 6px 12px; background: var(--accent-primary); color: white; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
-      <span id="loadMoreText">More results</span>
-      <div id="loadMoreSpinner" class="spinner" style="display: none;"></div>
-    </button>
-  </div>
-  </div>
+    <div class="bc-nav-group bc-cam-tree-group" id="sbGroupCams">
+      <div class="bc-nav-group-head" onclick="toggleSbGroup('sbGroupCams')">
+        <span class="bc-nav-group-left">
+          <svg class="bc-group-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          Câmeras em Rede
+        </span>
+        <span id="sbTreeCount" style="font-size:10px; opacity:0.8;">0</span>
+      </div>
+      <div class="bc-nav-group-body">
+        <div class="bc-cam-tree" id="bcSidebarCamTree"></div>
+      </div>
+    </div>
+
+    <div class="bc-nav-group" id="sbGroupOps">
+      <div class="bc-nav-group-head" onclick="toggleSbGroup('sbGroupOps')">
+        <span class="bc-nav-group-left">
+          <svg class="bc-group-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          Operação & IA
+        </span>
+      </div>
+      <div class="bc-nav-group-body">
+        <button class="bc-nav-item" onclick="openScannerModal()" data-tip="Scanner de Rede">
+          <span class="bc-sb-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/><line x1="12" y1="3" x2="12" y2="12"/></svg>
+          </span>
+          <span class="bc-sb-label">Scanner de Rede</span>
+        </button>
+        <button class="bc-nav-item" onclick="openOcrModal()" data-tip="Módulo OCR / LPR">
+          <span class="bc-sb-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+          </span>
+          <span class="bc-sb-label">Módulo OCR / LPR</span>
+        </button>
+        <button class="bc-nav-item" onclick="openProtocolsModal()" data-tip="Protocolos ITS / ISUP">
+          <span class="bc-sb-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </span>
+          <span class="bc-sb-label">Protocolos ITS / ISUP</span>
+        </button>
+        <button class="bc-nav-item" onclick="toggleMultiView()" data-tip="Multi-View Tela Cheia">
+          <span class="bc-sb-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+          </span>
+          <span class="bc-sb-label">Multi-View</span>
+        </button>
+        <button class="bc-nav-item" onclick="openSettingsModal()" data-tip="Configurações">
+          <span class="bc-sb-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </span>
+          <span class="bc-sb-label">Configurações</span>
+        </button>
+        <button class="bc-nav-item" onclick="toggleBrascontrolTheme()" data-tip="Alternar Tema">
+          <span class="bc-sb-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </span>
+          <span class="bc-sb-label">Tema Claro / Escuro</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="bc-sidebar-footer">
+      <div class="bc-sb-status-pill" title="YOLOv9 + Multi-OCR · ISUP 5.0 Porta 7660">
+        <span class="bc-sb-status-dot"></span>
+        <span>IA Ativa · ISUP 7660</span>
+      </div>
+      <button type="button" class="bc-sb-collapse-btn" onclick="toggleSidebarRail()" title="Recolher / Expandir menu lateral">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <main class="bc-main">
+    <div class="bc-panel">
+      <div class="bc-topbar">
+        <div class="bc-heading">
+          <h1>BRASCONTROL SMART CAM</h1>
+          <p id="bcDashboardSub">Monitoramento contínuo: ativo · inicializando status dos equipamentos e analíticos LPR...</p>
+        </div>
+        <div class="bc-top-actions">
+          <div class="date-picker-container">
+            <select id="streamDateSelect" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 9px; font-size: 13px; font-weight: 600; background: var(--bg-primary); color: var(--text-primary);">
+              <option value="">Carregando datas...</option>
+            </select>
+          </div>
+          <a href="/veiculos" class="bc-btn">Buscar Veículos (Cor / Placa / Modelo)</a>
+          <a href="/galeria" class="bc-btn">Galeria de Placas</a>
+          <button onclick="openOcrModal()" class="bc-btn">Módulo OCR / LPR</button>
+          <button onclick="openScannerModal()" class="bc-btn bc-btn-primary">Varrer agora</button>
+        </div>
+      </div>
+
+      <section class="bc-kpi-grid">
+        <div class="bc-kpi-card green" onclick="setCamFilterMode('online')" style="cursor:pointer;" title="Filtrar equipamentos online">
+          <div class="bc-kpi-label">Online</div>
+          <div class="bc-kpi-val" id="bcKpiOnline">0</div>
+        </div>
+        <div class="bc-kpi-card" onclick="setCamFilterMode('auth')" style="cursor:pointer;" title="Filtrar equipamentos aguardando credencial / offline">
+          <div class="bc-kpi-label">Offline / Credencial</div>
+          <div class="bc-kpi-val" id="bcKpiOffline">0</div>
+        </div>
+        <div class="bc-kpi-card amber">
+          <div class="bc-kpi-label">Disponibilidade</div>
+          <div class="bc-kpi-val" id="bcKpiAvail">0%</div>
+        </div>
+        <div class="bc-kpi-card" onclick="setCamFilterMode('all')" style="cursor:pointer;" title="Exibir todos os equipamentos">
+          <div class="bc-kpi-label">Equipamentos</div>
+          <div class="bc-kpi-val" id="bcKpiTotalCams">0</div>
+        </div>
+        <a class="bc-kpi-card amber" href="/galeria">
+          <div class="bc-kpi-label">Placas Validadas</div>
+          <div class="bc-kpi-val" id="bcKpiPlates">0</div>
+        </a>
+        <a class="bc-kpi-card" href="/galeria">
+          <div class="bc-kpi-label">Registros LPR 24h</div>
+          <div class="bc-kpi-val" id="bcKpiTodayPlates">0</div>
+        </a>
+        <div class="bc-kpi-card">
+          <div class="bc-kpi-label">Confiança OCR</div>
+          <div class="bc-kpi-val" id="bcKpiConf">0%</div>
+        </div>
+        <div class="bc-kpi-card" onclick="openProtocolsModal()" style="cursor:pointer;" title="Status ISUP 5.0 / Pumatronix / ONVIF">
+          <div class="bc-kpi-label">ISUP 5.0 (7660)</div>
+          <div class="bc-kpi-val" id="bcKpiIsup" style="font-size:20px;padding-top:4px;">ATIVO</div>
+        </div>
+      </section>
+
+      <div id="equipamentos" class="bc-section-head">
+        <h2 class="bc-section-title">Equipamentos em Monitoramento</h2>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <input type="text" id="camQuickSearch" oninput="applyCameraCardFilters()" placeholder="Filtrar câmera / IP..." style="padding:6px 11px; border:1px solid var(--border-color); border-radius:8px; background:var(--bg-secondary); color:var(--text-primary); font-size:12.5px; width:190px;">
+          <div class="bc-filter-pills">
+            <button type="button" class="bc-pill active" id="camPillAll" onclick="setCamFilterMode('all')">Todas</button>
+            <button type="button" class="bc-pill" id="camPillOnline" onclick="setCamFilterMode('online')">Online</button>
+            <button type="button" class="bc-pill" id="camPillAuth" onclick="setCamFilterMode('auth')">Aguardando Senha</button>
+          </div>
+          <button onclick="pauseAllCameras(true)" class="bc-btn" style="padding:6px 12px; font-size:12.5px;" title="Pausa o vídeo apenas na tela; gravação e IA/LPR continuam operando no servidor">⏸ Pausar Todos</button>
+          <button onclick="pauseAllCameras(false)" class="bc-btn" style="padding:6px 12px; font-size:12.5px;" title="Retomar vídeo em tempo real de todas as câmeras">▶ Play Todos</button>
+          <button onclick="toggleMultiView()" class="bc-btn" style="padding:6px 12px; font-size:12.5px;">Multi-View</button>
+          <button onclick="openProtocolsModal()" class="bc-btn" style="padding:6px 12px; font-size:12.5px;">ITSCAM / ONVIF / ISUP</button>
+          <button onclick="openSettingsModal()" class="bc-btn" style="padding:6px 12px; font-size:12.5px;">Configurações</button>
+        </div>
+      </div>
+
+      <div id="cameraList" class="camera-grid"></div>
+
+      <div class="bc-section-head" style="margin-top:28px;">
+        <h2 class="bc-section-title">Cadastrar Equipamento & Análise de Mídia</h2>
+      </div>
+      <div class="form-section bc-card-box" style="margin-top:0;">
+        <form id="addCameraForm" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <select id="protoPresetSelect" onchange="applyProtoTemplate()" style="padding:8px 10px; border:1px solid var(--border-color); border-radius:8px; background:var(--bg-primary); color:var(--text-primary); font-size:13px;">
+            <option value="rtsp">RTSP Padrão</option>
+            <option value="intelbras">RTSP Intelbras</option>
+            <option value="hikvision">RTSP Hikvision</option>
+            <option value="onvif">ONVIF (Auto-Stream)</option>
+            <option value="pumatronix">Pumatronix mjpegvideo.cgi</option>
+            <option value="isapi">Hikvision ISAPI</option>
+            <option value="isup">Hikvision ISUP 5.0 (7660)</option>
+          </select>
+          <input type="text" name="cam_name" placeholder="Nome do Equipamento" required style="padding:8px 10px; border-radius:8px;">
+          <input type="text" id="addCameraSrcInput" name="src" placeholder="rtsp:// / onvif:// / http://ip/api/mjpegvideo.cgi..." style="min-width:340px; flex:1; padding:8px 10px; border-radius:8px;" required>
+          <button type="submit" style="padding:8px 16px; border-radius:8px; font-weight:700;">Adicionar Equipamento</button>
+        </form>
+        <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-top:14px; padding-top:14px; border-top:1px solid var(--border-light);">
+          <div class="analyse-section">
+            <form id="analyseFootageForm" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <input type="file" id="videoFileInput" accept="video/*" required style="font-size:13px;">
+              <button type="submit" id="analyseBtn" style="padding:7px 14px; border-radius:8px; font-weight:700;">
+                <span class="btn-spinner" style="display:none;"></span>
+                <span class="btn-text">Analisar Arquivo de Vídeo</span>
+              </button>
+            </form>
+          </div>
+          <div id="analyseProgressWrapper" style="display:none; width:100%;">
+            <div class="spinner" style="margin-bottom:6px;"></div>
+            <small id="analyseProgressText">Enviando 0%</small>
+          </div>
+          <div class="max-storage-control" style="display: flex; align-items: center; gap: 8px;">
+            <label for="maxStorageInput" style="font-size:13px; font-weight:600; color:var(--text-secondary);">Armazenamento Máx. (GB):</label>
+            <input type="number" id="maxStorageInput" min="1" style="width: 100px; padding:7px 10px; border-radius:8px;">
+            <button type="button" id="setMaxStorageBtn" style="padding:7px 14px; border-radius:8px; font-weight:700;">Salvar</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="eventos" class="events-section" style="margin-top:28px;">
+        <div class="bc-section-head">
+          <h2 class="bc-section-title">Eventos e Detecções IA</h2>
+        </div>
+        <div class="events-filter bc-card-box" style="margin-top:0; margin-bottom:16px;">
+          <div class="filter-group" style="display:flex; align-items:center; gap:6px;">
+            <label for="cameraFilter">Equipamento:</label>
+            <select id="cameraFilter">
+              <option value="">Todas as Câmeras</option>
+            </select>
+          </div>
+          
+          <div class="filter-group" style="display:flex; align-items:center; gap:6px;">
+            <label for="eventDateFilter">Data:</label>
+            <select id="eventDateFilter">
+              <option value="">Carregando datas...</option>
+            </select>
+          </div>
+          
+          <label style="display: flex; align-items: center; gap: 6px; margin-left: 6px;">
+            <input type="checkbox" id="alertsOnlyCheckbox">
+            Somente Alertas
+          </label>
+          
+          <div style="display: flex; align-items: center; gap: 6px; margin-left: auto; flex-wrap:wrap;">
+            <div style="position: relative; display: flex; align-items: center; gap:4px;">
+              <label for="imageUpload" style="cursor: pointer; padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); display: flex; align-items: center; justify-content: center;" title="Buscar por imagem similar">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>
+              </label>
+              <label for="faceUpload" style="cursor: pointer; padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); display: flex; align-items: center; justify-content: center;" title="Buscar por face">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="8" r="4"></circle>
+                  <path d="M6 20c0-4 3-6 6-6s6 2 6 6"></path>
+                </svg>
+              </label>
+              <input type="file" id="faceUpload" accept="image/*" style="display: none;">
+              <span class="tooltip">
+                <span class="tooltip-icon">?</span>
+                <span class="tooltiptext">Use imagem, face ou texto/placa para localizar ocorrências nas gravações.</span>
+              </span>
+              <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+            </div>
+
+            <input type="text" id="imageSearchInput" placeholder="Buscar placa ou texto..." style="padding: 7px 10px; border: 1px solid var(--border-color); border-radius: 7px; background: var(--bg-primary); color: var(--text-primary);">
+
+            <button onclick="searchEventImages()" id="searchButton" style="padding: 7px 14px; background: var(--accent-primary); color: white; border: none; border-radius: 7px; font-weight:700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+              <span id="searchText">Buscar</span>
+              <div id="searchSpinner" class="spinner" style="display: none;"></div>
+            </button>
+
+            <button onclick="clearSearch()" id="clearButton" style="padding: 7px 14px; background: #6c757d; color: white; border: none; border-radius: 7px; font-weight:600; cursor: pointer;">Limpar</button>
+          </div>
+        </div>
+        <div id="eventImagesContainer">
+          <p style="text-align:center; color:var(--text-muted); width:100%;">Nenhum evento detectado ainda.</p>
+        </div>
+
+        <div style="width:100%; display:flex; justify-content:center; margin-top:16px;">
+          <button onclick="loadMoreEventImages()" id="loadMoreEventsBtn" style="padding: 8px 16px; background: var(--accent-primary); color: white; border: none; border-radius: 8px; font-weight:700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+            <span id="loadMoreText">Carregar mais</span>
+            <div id="loadMoreSpinner" class="spinner" style="display: none;"></div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
   
   <div id="multiView"></div>
 
@@ -1412,35 +2458,35 @@
   <div id="zoneModal" class="modal">
     <div class="modal-content" style="max-width: 600px;">
         <div class="modal-header">
-            <h3>Edit Zone</h3>
+            <h3>Zona de Detecção & Fonte — Brascontrol Smart Cam</h3>
             <span class="close" onclick="closeZoneModal()">&times;</span>
         </div>
         <div style="position: relative; display: inline-block; max-width: 100%;">
             <img id="zonePreview" src="/testcam/preview.png"
-                style="width: 100%; max-height: 400px; object-fit: contain; border: 1px solid #ccc; border-radius: 6px; user-select: none; -webkit-user-drag: none; cursor: crosshair;">
+                style="width: 100%; max-height: 400px; object-fit: contain; border: 1px solid var(--border-color); border-radius: 8px; user-select: none; -webkit-user-drag: none; cursor: crosshair;">
             <div id="polygonOverlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></div>
         </div>
-        <div style="margin: 10px 0; text-align: center; color: #666; font-size: 0.9rem;">
-            Click on the image to make a detection zone.
+        <div style="margin: 10px 0; text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
+            Clique na imagem para desenhar um polígono de zona de detecção.
         </div>
         <div class="form-actions" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; width: 100%;">
             <div style="display: flex; flex-direction: column; gap: 10px;">
                 <label style="display: flex; align-items: center; gap: 6px;">
-                    <input type="checkbox" id="outsideZoneCheckbox"> Detect outside of zone only
+                    <input type="checkbox" id="outsideZoneCheckbox"> Detectar apenas fora da zona
                 </label>
                 <label style="display: flex; align-items: center; gap: 6px;">
-                    Detection Threshold:
+                    Sensibilidade (Threshold):
                     <input type="number" id="zoneThreshold" value="50" min="0" max="100" step="1" style="width: 60px;"> %
                 </label>
                 <label style="display: flex; align-items: center; gap: 6px;">
-                    Change source:
-                    <input type="text" id="zoneSource" placeholder="Enter new URL (optional)" style="width: 200px;">
+                    Nova URL / Credencial:
+                    <input type="text" id="zoneSource" placeholder="rtsp://usuario:senha@ip..." style="width: 220px; padding:5px 8px; border:1px solid var(--border-color); border-radius:6px; background:var(--bg-primary); color:var(--text-primary);">
                 </label>
             </div>
             <div style="display: flex; gap: 10px;">
-                <button type="button" class="clear-zone-button" onclick="clearPolygon()">Clear Zone</button>
-                <button type="button" onclick="closeZoneModal()">Cancel</button>
-                <button type="button" onclick="saveZone()">Save</button>
+                <button type="button" class="clear-zone-button" onclick="clearPolygon()">Limpar Zona</button>
+                <button type="button" onclick="closeZoneModal()">Cancelar</button>
+                <button type="button" onclick="saveZone()">Salvar</button>
             </div>
         </div>
     </div>
@@ -1449,15 +2495,15 @@
     <div id="alertsModal" class="modal">
       <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
         <div class="modal-header">
-          <h3>Detection & Counts - <span id="alertsCameraName"></span></h3>
+          <h3>Alertas & Contagem — <span id="alertsCameraName"></span></h3>
           <span class="close" onclick="closeAlertsModal()">&times;</span>
         </div>
         <div class="modal-body">
-          <h3>Active Alerts</h3>
+          <h3>Regras de Alerta Ativas</h3>
           <div id="alertsContainer">
-            <p>Loading alerts...</p>
+            <p>Carregando alertas...</p>
             <div style="display: flex; gap: 10px; justify-content: flex-start; margin-top: 10px;">
-              <button onclick="openAlertModal()">Add Alert</button>
+              <button onclick="openAlertModal()">Novo Alerta</button>
             </div>
           </div>
 
@@ -1465,33 +2511,33 @@
             <table id="objectCounts" style="font-size: 1rem; border-collapse: collapse;">
               <tbody></tbody>
             </table>
-            <button onclick="resetCounts()">Reset</button>
+            <button onclick="resetCounts()">Zerar Contagem</button>
           </div>
         </div>
       </div>
     </div>
 
     <div id="settingsModal" class="modal">
-      <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-content" style="max-width: 540px;">
         <div class="modal-header">
-          <h3>Global Settings</h3>
+          <h3>Configurações Globais — Brascontrol Smart Cam</h3>
           <span class="close" onclick="closeSettingsModal()">&times;</span>
         </div>
 
         <div id="settingsContainer" style="display: flex; flex-direction: column; gap: 12px;">
-          <p>Loading settings...</p>
+          <p>Carregando configurações...</p>
         </div>
 
         <div class="form-actions" style="margin-top: 20px; display: flex; justify-content: center;">
-          <button type="button" onclick="saveSettings()">Save</button>
+          <button type="button" onclick="saveSettings()" style="background:var(--brand); color:#fff; border:none; padding:9px 22px; border-radius:8px; font-weight:700; cursor:pointer;">Salvar Configurações</button>
         </div>
       </div>
     </div>
 
     <div id="alertModal" class="modal">
-      <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-content" style="max-width: 420px;">
         <div class="modal-header">
-          <h3>Add New Alert</h3>
+          <h3>Adicionar Novo Alerta</h3>
           <span class="close" onclick="closeAlertModal()">&times;</span>
         </div>
         <form id="alertForm" onsubmit="addAlert(event)" style="display: flex; flex-direction: column; align-items: center;">
@@ -1846,7 +2892,7 @@
                     <span class="tooltip">
                       Send Alerts
                       <span class="tooltip-icon">?</span>
-                      <span class="tooltiptext">Enable to send notifications and clips to your clearcam app for this alert (requires premium).</span>
+                      <span class="tooltiptext">Ativar envio de notificações e clipes para o servidor Brascontrol Smart Cam neste alerta.</span>
                     </span>
                   </th>
                   <th style="text-align:center; padding:6px; border-bottom:1px solid #ccc;">
@@ -2299,17 +3345,35 @@
       card.dataset.camera = camName;
       
       const videoId = `video-${camName}`;
+      const liveImgId = `liveimg-${camName}`;
+      const canvasId = `pausecanvas-${camName}`;
       const placeholderId = `placeholder-${camName}`;
       
       card.innerHTML = `
-        <div class="video-container">
-          <video id="${videoId}" controls muted playsinline></video>
-          <div class="video-placeholder" id="${placeholderId}">Loading stream...</div>
+        <div class="video-container" id="vwrap-${camName}" style="position:relative;">
+          <img id="${liveImgId}" class="bc-live-img" style="display:none; cursor:pointer;" onclick="toggleCamPlayPause('${camName}')" alt="${camName}" />
+          <canvas id="${canvasId}" class="bc-pause-canvas" style="display:none; cursor:pointer;" onclick="toggleCamPlayPause('${camName}')"></canvas>
+          <video id="${videoId}" controls muted playsinline style="display:none;"></video>
+          <div class="video-placeholder" id="${placeholderId}">Conectando ao vídeo em tempo real...</div>
+          <div class="bc-paused-banner" id="pausebanner-${camName}">⏸ PAUSADO NA TELA · IA/LPR ATIVO NO SERVIDOR</div>
+          <div id="badge-${camName}" style="position:absolute; top:6px; left:6px; background:rgba(0,0,0,0.76); color:#00ffaa; font-size:11px; font-weight:700; padding:3px 8px; border-radius:5px; pointer-events:none; z-index:6;">...</div>
+          <div id="ocrbadge-${camName}" style="display:none; position:absolute; bottom:40px; left:6px; background:rgba(0,0,0,0.84); color:#ffd43b; font-size:12px; font-weight:bold; padding:3px 8px; border-radius:4px; pointer-events:none; z-index:6;"></div>
+          <div class="bc-player-bar" id="pbar-${camName}">
+            <div style="display:flex; gap:5px; align-items:center;">
+              <button type="button" class="bc-player-btn" id="playbtn-${camName}" onclick="toggleCamPlayPause('${camName}')" title="Pausar/Reproduzir vídeo na tela (o backend continua gravando e lendo placas)">⏸ Pausar</button>
+              <button type="button" class="bc-player-btn active-mode" id="modelive-${camName}" onclick="switchCamMode('${camName}', 'live')" title="Stream em tempo real de baixa latência">● Ao Vivo</button>
+              <button type="button" class="bc-player-btn" id="modehls-${camName}" onclick="switchCamMode('${camName}', 'hls')" title="Player de gravação contínua (linha do tempo)">⏪ Gravado</button>
+            </div>
+            <div style="display:flex; gap:5px; align-items:center;">
+              <button type="button" class="bc-player-btn" onclick="quickCaptureCam('${camName}')" title="Capturar placa desta câmera agora">📸 LPR</button>
+              <button type="button" class="bc-player-btn" onclick="fullscreenCamCard('${camName}')" title="Tela cheia">⛶</button>
+            </div>
+          </div>
         </div>
         <div class="camera-info">
           <div style="display: flex; align-items: center; gap: 6px;">
             <span class="camera-name">${camName}</span>
-            <button class="download-button" onclick="downloadCameraFootage('${camName}')" title="Download">
+            <button class="download-button" onclick="downloadCameraFootage('${camName}')" title="Baixar Gravação">
               <span class="icon">
                 <svg><use href="#icon-download"></use></svg>
               </span>
@@ -2317,17 +3381,17 @@
           </div>
           <div style="display: flex; gap: 6px; align-items: center;">
             <div class="button-group">
-              <button class="icon-button" onclick="openSettingsEditor('${camName}')" title="Settings">
+              <button class="icon-button" onclick="openSettingsEditor('${camName}')" title="Zona e Credenciais">
                 <span class="icon">
                   <svg><use href="#icon-cog"></use></svg>
                 </span>
               </button>
-              <button class="icon-button" onclick="openAlertsModal('${camName}')" title="Alerts">
+              <button class="icon-button" onclick="openAlertsModal('${camName}')" title="Alertas e Contadores">
                 <span class="icon">
                   <svg><use href="#icon-bell"></use></svg>
                 </span>
               </button>
-              <button class="icon-button delete-button" onclick="deleteCamera('${camName}')" title="Delete">
+              <button class="icon-button delete-button" onclick="deleteCamera('${camName}')" title="Remover Equipamento">
                 <span class="icon">
                   <svg><use href="#icon-bin"></use></svg>
                 </span>
@@ -2673,94 +3737,228 @@
         }
     }
 
-    function startCameraStream(camName) {
-      const videoId = `video-${camName}`;
-      const placeholderId = `placeholder-${camName}`;
-      const video = document.getElementById(videoId);
-      const placeholder = document.getElementById(placeholderId);
-      
-      if (!video) {
-        console.warn(`Video element not found for ${camName}`);
-        return;
+    function isTodayStreamDate() {
+      const todayIso = new Date().toLocaleDateString('en-CA');
+      return !currentStreamDate || currentStreamDate === todayIso;
+    }
+
+    function startCameraStream(camName, forcedMode = null) {
+      const video = document.getElementById(`video-${camName}`);
+      const liveImg = document.getElementById(`liveimg-${camName}`);
+      const canvas = document.getElementById(`pausecanvas-${camName}`);
+      const placeholder = document.getElementById(`placeholder-${camName}`);
+      const pauseBanner = document.getElementById(`pausebanner-${camName}`);
+      const playBtn = document.getElementById(`playbtn-${camName}`);
+      const btnLive = document.getElementById(`modelive-${camName}`);
+      const btnHls = document.getElementById(`modehls-${camName}`);
+
+      if (!video || !liveImg) return;
+
+      const prevInfo = activeVideoStreams.get(camName);
+      if (prevInfo && prevInfo.hls && typeof prevInfo.hls.destroy === 'function') {
+        prevInfo.hls.destroy();
       }
-      const checkbox = document.querySelector(`.show-detections-checkbox[data-camera="${camName}"]`);
-      const showDetections = checkbox ? checkbox.checked : false;
-      
+
+      const mode = forcedMode || (prevInfo && prevInfo.mode) || (isTodayStreamDate() ? 'live' : 'hls');
       const encoded = encodeURIComponent(camName);
       const baseUrl = window.location.origin;
       const streamUrl = `${baseUrl}/${encoded}/streams/${currentStreamDate}/stream.m3u8`;
-      
-      activeVideoStreams.set(camName, {
-        video: video,
+      const liveUrl = `${baseUrl}/live_mjpeg?cam=${encoded}&fps=8&q=78&_t=${Date.now()}`;
+
+      if (btnLive) btnLive.classList.toggle('active-mode', mode === 'live');
+      if (btnHls) btnHls.classList.toggle('active-mode', mode === 'hls');
+      if (pauseBanner) pauseBanner.style.display = 'none';
+      if (canvas) canvas.style.display = 'none';
+      if (playBtn) {
+        playBtn.textContent = '⏸ Pausar';
+        playBtn.classList.remove('paused-state');
+      }
+
+      const stateObj = {
+        video,
+        liveImg,
+        canvas,
         hls: null,
-        streamUrl: streamUrl,
-        isPlaying: false
-      });
-      
-      waitForManifest(streamUrl, 30, 1000).then(ready => {
+        mode,
+        streamUrl,
+        isPlaying: true,
+        isPaused: false
+      };
+      activeVideoStreams.set(camName, stateObj);
+
+      if (mode === 'live') {
+        // Desativa vídeo HLS e conecta ao stream MJPEG em tempo real direto da RAM do backend
+        video.pause();
+        video.removeAttribute('src');
+        video.style.display = 'none';
+        liveImg.style.display = 'block';
+        if (placeholder) {
+          placeholder.textContent = 'Conectando ao vídeo em tempo real...';
+          placeholder.style.display = 'flex';
+        }
+        liveImg.onload = function() {
+          if (placeholder) placeholder.style.display = 'none';
+        };
+        liveImg.onerror = function() {
+          const st = (window.latestCameraStatuses && window.latestCameraStatuses[camName]) || {};
+          if (placeholder && !stateObj.isPaused) {
+            placeholder.textContent = st.state === 'auth_needed'
+              ? 'Credencial RTSP/ONVIF necessária (clique na engrenagem)'
+              : 'Aguardando sinal de vídeo em tempo real...';
+            placeholder.style.display = 'flex';
+          }
+        };
+        liveImg.src = liveUrl;
+        return;
+      }
+
+      // Modo Gravado (HLS com linha do tempo)
+      liveImg.removeAttribute('src');
+      liveImg.style.display = 'none';
+      video.style.display = 'block';
+      if (placeholder) {
+        placeholder.textContent = 'Carregando gravação HLS...';
+        placeholder.style.display = 'flex';
+      }
+
+      waitForManifest(streamUrl, 25, 1000).then(ready => {
+        if (activeVideoStreams.get(camName) !== stateObj || stateObj.mode !== 'hls') return;
         if (!ready) {
-          if (placeholder) placeholder.textContent = 'Stream unavailable';
+          if (placeholder) placeholder.textContent = 'Gravação ainda não disponível para esta data';
           return;
         }
-        
         if (placeholder) placeholder.style.display = 'none';
-        
+
         if (Hls.isSupported()) {
           const hls = new Hls({
             manifestLoadingTimeOut: 20000,
             manifestLoadingMaxRetry: Infinity,
             manifestLoadingRetryDelay: 2000,
+            lowLatencyMode: true
           });
-
           hls.loadSource(streamUrl);
           hls.attachMedia(video);
-
           hls.on(Hls.Events.MANIFEST_PARSED, function () {
-            video.play().catch(e => console.log('Auto-play prevented:', e));
-            activeVideoStreams.get(camName).isPlaying = true;
-          });
-
-          hls.on(Hls.Events.ERROR, function (event, data) {
-            if (data && data.fatal) {
-              switch (data.type) {
-                case Hls.ErrorTypes.NETWORK_ERROR:
-                  hls.startLoad(-1);
-                  break;
-                case Hls.ErrorTypes.MEDIA_ERROR:
-                  hls.recoverMediaError();
-                  break;
-                default:
-                  cleanupCameraStream(camName);
-                  if (placeholder) {
-                    placeholder.textContent = 'Stream error';
-                    placeholder.style.display = 'flex';
-                  }
-                  break;
-              }
+            if (!stateObj.isPaused) {
+              video.play().catch(() => {});
             }
           });
-
-          activeVideoStreams.get(camName).hls = hls;
+          hls.on(Hls.Events.ERROR, function (event, data) {
+            if (data && data.fatal) {
+              if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad(-1);
+              else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
+            }
+          });
+          stateObj.hls = hls;
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
           video.src = streamUrl;
-          video.addEventListener('loadedmetadata', function onMeta() {
-            video.removeEventListener('loadedmetadata', onMeta);
-            video.play().catch(e => console.log('Auto-play prevented:', e));
-            activeVideoStreams.get(camName).isPlaying = true;
-          });
-        } else {
-          if (placeholder) {
-            placeholder.textContent = 'HLS not supported';
-            placeholder.style.display = 'flex';
-          }
-        }
-      }).catch(error => {
-        console.error(`Error starting stream for ${camName}:`, error);
-        if (placeholder) {
-          placeholder.textContent = 'Stream error';
-          placeholder.style.display = 'flex';
+          video.play().catch(() => {});
         }
       });
+    }
+
+    function switchCamMode(camName, newMode) {
+      startCameraStream(camName, newMode);
+    }
+
+    function setCamPausedState(camName, shouldPause) {
+      const info = activeVideoStreams.get(camName);
+      if (!info) return;
+      const playBtn = document.getElementById(`playbtn-${camName}`);
+      const pauseBanner = document.getElementById(`pausebanner-${camName}`);
+      const placeholder = document.getElementById(`placeholder-${camName}`);
+
+      if (shouldPause && !info.isPaused) {
+        info.isPaused = true;
+        info.isPlaying = false;
+        if (info.mode === 'live') {
+          const img = info.liveImg;
+          const cvs = info.canvas;
+          if (img && cvs && img.naturalWidth > 0 && img.naturalHeight > 0) {
+            cvs.width = img.naturalWidth;
+            cvs.height = img.naturalHeight;
+            const ctx = cvs.getContext('2d');
+            ctx.drawImage(img, 0, 0, cvs.width, cvs.height);
+            cvs.style.display = 'block';
+            if (placeholder) placeholder.style.display = 'none';
+          }
+          // Corta apenas a recepção visual no navegador; o backend continua processando normalmente
+          if (img) {
+            img.src = '';
+            img.style.display = 'none';
+          }
+        } else if (info.video) {
+          info.video.pause();
+        }
+        if (pauseBanner) pauseBanner.style.display = 'block';
+        if (playBtn) {
+          playBtn.textContent = '▶ Play';
+          playBtn.classList.add('paused-state');
+        }
+      } else if (!shouldPause && info.isPaused) {
+        info.isPaused = false;
+        info.isPlaying = true;
+        if (pauseBanner) pauseBanner.style.display = 'none';
+        if (playBtn) {
+          playBtn.textContent = '⏸ Pausar';
+          playBtn.classList.remove('paused-state');
+        }
+        if (info.mode === 'live') {
+          if (info.canvas) info.canvas.style.display = 'none';
+          if (info.liveImg) {
+            info.liveImg.style.display = 'block';
+            info.liveImg.src = `${window.location.origin}/live_mjpeg?cam=${encodeURIComponent(camName)}&fps=8&q=78&_t=${Date.now()}`;
+          }
+        } else if (info.video) {
+          info.video.play().catch(() => {});
+        }
+      }
+    }
+
+    function toggleCamPlayPause(camName) {
+      const info = activeVideoStreams.get(camName);
+      if (!info) {
+        startCameraStream(camName, 'live');
+        return;
+      }
+      setCamPausedState(camName, !info.isPaused);
+    }
+
+    function pauseAllCameras(shouldPause) {
+      (window.currentCameras || []).forEach(camName => {
+        setCamPausedState(camName, shouldPause);
+      });
+    }
+
+    async function quickCaptureCam(camName) {
+      try {
+        const res = await fetch('/api/plate_capture_now', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cam: camName, plate_mode: false })
+        });
+        const out = await res.json();
+        refreshCameraBadges();
+        refreshBrascontrolKpis();
+        if (out.captured && out.captured.length > 0) {
+          const top = out.captured[0];
+          const ocrb = document.getElementById(`ocrbadge-${camName}`);
+          if (ocrb) {
+            ocrb.style.display = 'block';
+            ocrb.textContent = `CAPTURADO: ${top.plate || top.text} (${top.vehicle_color || ''})`;
+          }
+        }
+      } catch (e) {}
+    }
+
+    function fullscreenCamCard(camName) {
+      const wrap = document.getElementById(`vwrap-${camName}`);
+      if (!wrap) return;
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      } else if (wrap.requestFullscreen) {
+        wrap.requestFullscreen().catch(() => {});
+      }
     }
 
     const detectionIntervals = new Map();
@@ -2788,6 +3986,10 @@
       if (streamInfo) {
         if (streamInfo.hls && typeof streamInfo.hls.destroy === 'function') {
           streamInfo.hls.destroy();
+        }
+        if (streamInfo.liveImg) {
+          streamInfo.liveImg.src = '';
+          streamInfo.liveImg.removeAttribute('src');
         }
         if (streamInfo.video) {
           streamInfo.video.pause();
@@ -2925,61 +4127,102 @@
       }
 
       if (!window.currentCameras || window.currentCameras.length === 0) {
-        alert("No cameras available.");
+        alert("Nenhum equipamento cadastrado.");
         return;
       }
 
       container.classList.add('active');
 
-      const cams = window.currentCameras.slice();
+      const allCams = window.currentCameras.slice();
+      const onlineOnly = allCams.filter(c => (window.latestCameraStatuses?.[c]?.state) === 'online');
+      const cams = onlineOnly.length > 0 ? onlineOnly : allCams;
       const base = window.location.origin;
 
       const count = cams.length;
       const cols = Math.ceil(Math.sqrt(count));
       const rows = Math.ceil(count / cols);
       container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-      container.style.gridTemplateRows = `repeat(${rows}, auto)`;
+      container.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
       container.innerHTML = '';
 
       cams.forEach(cam => {
         const encoded = encodeURIComponent(cam);
-        const videoUrl = `${base}/${encoded}/streams/${currentStreamDate}/stream.m3u8`;
+        const liveUrl = `${base}/live_mjpeg?cam=${encoded}&fps=8&q=76&_t=${Date.now()}`;
 
         const wrapper = document.createElement('div');
         wrapper.className = 'video-wrapper';
-        const vid = document.createElement('video');
-        vid.autoplay = true;
-        vid.muted = true;
-        vid.playsInline = true;
-        vid.dataset.streamUrl = videoUrl;
-        wrapper.appendChild(vid);
+        wrapper.style.position = 'relative';
+        wrapper.style.background = '#050608';
+
+        const img = document.createElement('img');
+        img.src = liveUrl;
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'contain';
+        img.dataset.liveUrl = liveUrl;
+        img.dataset.paused = '0';
+
+        const cvs = document.createElement('canvas');
+        cvs.style.display = 'none';
+        cvs.style.width = '100%';
+        cvs.style.height = '100%';
+        cvs.style.objectFit = 'contain';
+
+        const lbl = document.createElement('div');
+        lbl.style.cssText = 'position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.75);color:#22c55e;padding:3px 9px;border-radius:5px;font-size:12px;font-weight:700;z-index:5;';
+        lbl.textContent = `${cam} · AO VIVO`;
+
+        const pBtn = document.createElement('button');
+        pBtn.style.cssText = 'position:absolute;bottom:8px;left:8px;background:rgba(20,23,30,0.88);color:#fff;border:1px solid rgba(255,255,255,0.25);padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;z-index:5;';
+        pBtn.textContent = '⏸ Pausar';
+        pBtn.onclick = (ev) => {
+          ev.stopPropagation();
+          if (img.dataset.paused === '0') {
+            if (img.naturalWidth > 0) {
+              cvs.width = img.naturalWidth;
+              cvs.height = img.naturalHeight;
+              cvs.getContext('2d').drawImage(img, 0, 0);
+              cvs.style.display = 'block';
+            }
+            img.src = '';
+            img.style.display = 'none';
+            img.dataset.paused = '1';
+            pBtn.textContent = '▶ Play';
+            lbl.textContent = `${cam} · PAUSADO NA TELA`;
+            lbl.style.color = '#fbbf24';
+          } else {
+            cvs.style.display = 'none';
+            img.style.display = 'block';
+            img.src = `${base}/live_mjpeg?cam=${encoded}&fps=8&q=76&_t=${Date.now()}`;
+            img.dataset.paused = '0';
+            pBtn.textContent = '⏸ Pausar';
+            lbl.textContent = `${cam} · AO VIVO`;
+            lbl.style.color = '#22c55e';
+          }
+        };
+
+        wrapper.appendChild(img);
+        wrapper.appendChild(cvs);
+        wrapper.appendChild(lbl);
+        wrapper.appendChild(pBtn);
         container.appendChild(wrapper);
-
-        (async () => {
-          const ready = await waitForManifest(videoUrl, 60, 1000);
-          if (!ready) {
-            console.error("Stream never became available for", cam);
-            const notice = document.createElement('div');
-            notice.style.position = 'absolute';
-            notice.style.color = 'white';
-            notice.textContent = 'Stream unavailable';
-            wrapper.appendChild(notice);
-            return;
-          }
-
-          try {
-            attachHlsToVideo(videoUrl, vid, null);
-          } catch (e) {
-            console.error("Failed to attach HLS for", cam, e);
-          }
-        })();
       });
 
-      if (container.requestFullscreen) container.requestFullscreen();
+      const exitBtn = document.createElement('button');
+      exitBtn.style.cssText = 'position:fixed;top:12px;right:16px;background:#891c2e;color:#fff;border:none;padding:8px 14px;border-radius:8px;font-weight:800;cursor:pointer;z-index:99999;';
+      exitBtn.textContent = 'Fechar Multi-View ✕';
+      exitBtn.onclick = closeMultiView;
+      container.appendChild(exitBtn);
+
+      if (container.requestFullscreen) container.requestFullscreen().catch(() => {});
     }
 
     function closeMultiView() {
       const container = document.getElementById('multiView');
+      container.querySelectorAll('img').forEach(img => {
+        img.src = '';
+        img.removeAttribute('src');
+      });
       container.querySelectorAll('video').forEach(vid => {
         try {
           if (vid._hlsInstance && typeof vid._hlsInstance.destroy === 'function') {
@@ -2989,9 +4232,7 @@
           vid.pause();
           vid.removeAttribute('src');
           vid.load();
-        } catch (e) {
-          console.warn('Error cleaning video', e);
-        }
+        } catch (e) {}
       });
 
       container.innerHTML = '';
@@ -3497,7 +4738,7 @@
 
       const labelMap = {
         "use_clip": "OpenCLIP Search",
-        "use_face": "Face Detection (Experimental)",
+        "use_face": "Face Detection (BlazeFace + AdaFace)",
         "model_size": "YOLOv9 Model",
         "model_res": "YOLOv9 Resolution",
         "use_qwen": "AI Event Summaries (Qwen3VL)",
@@ -3505,7 +4746,15 @@
         "qwen_prompt": "Qwen3VL Prompt",
         "userID": "User ID",
         "key": "Key",
-        "server_url": "Notification Server URL"
+        "server_url": "Notification Server URL",
+        "use_ocr": "Ativar Leitura OCR Automatica",
+        "ocr_engine": "Motor OCR (GitHub / Local)",
+        "ocr_plate_mode": "Modo Placa (Mercosul / BR)",
+        "ocr_interval": "Intervalo OCR por Camera (s)",
+        "ocr_pumatronix_hi_res": "OCR Hi-Res via snapshot.cgi (Pumatronix)",
+        "isup_listen": "Servidor Hikvision ISUP 5.0 Ativo",
+        "isup_port": "Porta Listener ISUP (TCP/UDP)",
+        "isup_key": "Chave Criptografia ISUP 5.0"
         };
 
       const tooltipMap = {
@@ -3513,12 +4762,20 @@
         "use_face": "Enables searching detected people using a face image.",
         "model_size": "YOLOv9 Detection model size (tiny, small, medium, compact, extended)",
         "model_res": "Sets the input resolution for YOLOv9 detection.",
-        "use_qwen": "Enables AI-powered event summaries for notifications using Qwen3VL vision-language model (Clearcam User ID required).",
+        "use_qwen": "Enables AI-powered event summaries for notifications using Qwen3VL vision-language model.",
         "qwen_size": "Select the Qwen3VL model size (2B or 4B parameters).",
         "userID": "Your account user ID for notifications and remote config.",
         "key": "Secret key for encrypting event clips.",
-        "qwen_prompt": "The prompt for the language model to answer and summarize the event (tip: explicitly tell it to be brief, otherwise it will return too much text!).",
-        "server_url": "URL of server that receives requests upon events."
+        "qwen_prompt": "The prompt for the language model to answer and summarize the event.",
+        "server_url": "URL of server that receives requests upon events.",
+        "use_ocr": "Executa leitura de textos/placas automaticamente sobre objetos detectados.",
+        "ocr_engine": "Escolha entre RapidOCR (PaddleOCR ONNX), Tesseract OCR, EasyOCR ou Ensemble.",
+        "ocr_plate_mode": "Filtra e normaliza padrao de placas Mercosul (ABC1D23) e antigas (ABC1234).",
+        "ocr_interval": "Tempo minimo em segundos entre leituras OCR na mesma camera.",
+        "ocr_pumatronix_hi_res": "Dispara /api/snapshot.cgi?qualidade=95 na Pumatronix ao detectar veiculo.",
+        "isup_listen": "Mantem porta TCP/UDP aberta para registro de cameras Hikvision via ISUP/EHome.",
+        "isup_port": "Porta padrao ISUP/EHome (7660).",
+        "isup_key": "Chave de comunicacao configurada na camera Hikvision ISUP 5.0."
       };
 
         const wrapper = document.createElement("div");
@@ -3545,6 +4802,21 @@
             option.value = opt;
             option.textContent = opt;
             if (value === opt) option.selected = true;
+            input.appendChild(option);
+          });
+        }
+        else if (key === "ocr_engine") {
+          input = document.createElement("select");
+          [
+            {v: "rapidocr", l: "RapidOCR (PaddleOCR ONNX)"},
+            {v: "tesseract", l: "Tesseract OCR"},
+            {v: "easyocr", l: "EasyOCR (PyTorch)"},
+            {v: "ensemble", l: "Ensemble (Multi-Engine)"}
+          ].forEach(opt => {
+            const option = document.createElement("option");
+            option.value = opt.v;
+            option.textContent = opt.l;
+            if (value === opt.v) option.selected = true;
             input.appendChild(option);
           });
         }
@@ -3662,8 +4934,536 @@
       });
     }
 
-    fetchCameras();
+    function applyProtoTemplate() {
+      const p = document.getElementById("protoPresetSelect").value;
+      const inp = document.getElementById("addCameraSrcInput");
+      const templates = {
+        rtsp: "rtsp://admin:senha@192.168.1.100:554/stream1",
+        intelbras: "rtsp://admin:senha@192.168.1.31:554/cam/realmonitor?channel=1&subtype=0",
+        hikvision: "rtsp://admin:senha@192.168.1.49:554/Streaming/Channels/101",
+        onvif: "onvif://admin:senha@192.168.1.31:80/0?channel=1",
+        pumatronix: "http://192.168.1.20/api/mjpegvideo.cgi?Quality=80&Resolution=640x480&FrameRate=15",
+        isapi: "isapi://admin:senha@192.168.1.49:80/101",
+        isup: "isup://DEVICE_ID:CHAVE_ISUP@0.0.0.0:7660?cam_ip=192.168.1.49&channel=101"
+      };
+      if (templates[p]) inp.value = templates[p];
+    }
+
+    let camFilterMode = "all";
+    window.latestCameraStatuses = {};
+
+    function toggleBrascontrolTheme() {
+      document.body.classList.toggle("dark");
+      localStorage.setItem("brascontrol_theme", document.body.classList.contains("dark") ? "dark" : "light");
+    }
+    if (localStorage.getItem("brascontrol_theme") === "dark") {
+      document.body.classList.add("dark");
+    }
+
+    function setCamFilterMode(mode) {
+      camFilterMode = mode || "all";
+      ["All", "Online", "Auth"].forEach(k => {
+        const el = document.getElementById("camPill" + k);
+        if (el) el.classList.toggle("active", k.toLowerCase() === camFilterMode);
+      });
+      applyCameraCardFilters();
+    }
+
+    function applyCameraCardFilters() {
+      const qEl = document.getElementById("camQuickSearch");
+      const q = (qEl ? qEl.value : "").trim().toLowerCase();
+      document.querySelectorAll(".camera-card").forEach(card => {
+        const cname = card.dataset.camera || "";
+        const st = (window.latestCameraStatuses && window.latestCameraStatuses[cname]) || {};
+        const state = st.state || "";
+        let okMode = true;
+        if (camFilterMode === "online") okMode = (state === "online");
+        else if (camFilterMode === "auth") okMode = (state !== "online");
+        const okQuery = !q || cname.toLowerCase().includes(q) || String(st.url || "").toLowerCase().includes(q) || String(st.protocol || "").toLowerCase().includes(q);
+        card.style.display = (okMode && okQuery) ? "" : "none";
+      });
+    }
+
+    async function refreshCameraBadges() {
+      try {
+        const res = await fetch("/camera_status");
+        const statuses = await res.json();
+        window.latestCameraStatuses = statuses || {};
+        let onlineCount = 0;
+        let totalCount = Object.keys(statuses).length;
+        Object.entries(statuses).forEach(([camName, st]) => {
+          if (st.state === "online") onlineCount++;
+          const badge = document.getElementById(`badge-${camName}`);
+          if (badge) {
+            const stateColors = { online: "#22c55e", auth_needed: "#ff6b6b", connecting: "#ffd43b", reconnecting: "#ffa94d", waiting_isup_7660: "#74c0fc" };
+            const stateLabels = { online: "ONLINE", auth_needed: "SENHA NECESSÁRIA", connecting: "CONECTANDO", reconnecting: "RECONECTANDO", waiting_isup_7660: "AGUARDANDO ISUP 7660" };
+            badge.style.color = stateColors[st.state] || "#ffffff";
+            const fpsTxt = st.fps ? ` · ${st.fps} fps` : "";
+            badge.textContent = `${st.protocol || "CAM"} · ${stateLabels[st.state] || st.state || ""}${fpsTxt}`;
+          }
+          // Auto-reconexão do stream em tempo real quando a câmera fica online
+          const sInfo = activeVideoStreams.get(camName);
+          const ph = document.getElementById(`placeholder-${camName}`);
+          if (st.state === "online" && sInfo && sInfo.mode === "live" && !sInfo.isPaused && ph && ph.style.display !== "none") {
+            const nowMs = Date.now();
+            if (!sInfo._lastRetry || (nowMs - sInfo._lastRetry) > 4000) {
+              sInfo._lastRetry = nowMs;
+              sInfo.liveImg.src = `${window.location.origin}/live_mjpeg?cam=${encodeURIComponent(camName)}&fps=8&q=78&_t=${nowMs}`;
+            }
+          }
+          const ocrb = document.getElementById(`ocrbadge-${camName}`);
+          if (ocrb && st.last_ocr && st.last_ocr.text) {
+            ocrb.style.display = "block";
+            ocrb.textContent = `LPR [${st.last_ocr.engine}]: ${st.last_ocr.plate || st.last_ocr.text} (${Math.round((st.last_ocr.conf || 0)*100)}%)`;
+          }
+        });
+        const offlineCount = Math.max(0, totalCount - onlineCount);
+        const availPct = totalCount > 0 ? Math.round((onlineCount / totalCount) * 1000) / 10 : 0;
+        const elOn = document.getElementById("bcKpiOnline");
+        const elOff = document.getElementById("bcKpiOffline");
+        const elAv = document.getElementById("bcKpiAvail");
+        const elTot = document.getElementById("bcKpiTotalCams");
+        if (elOn) elOn.textContent = onlineCount;
+        if (elOff) elOff.textContent = offlineCount;
+        if (elAv) elAv.textContent = `${availPct}%`;
+        if (elTot) elTot.textContent = totalCount;
+        const sbOn = document.getElementById("sbBadgeOnlineCams");
+        if (sbOn) sbOn.textContent = onlineCount;
+        const sbTc = document.getElementById("sbTreeCount");
+        if (sbTc) sbTc.textContent = `${onlineCount}/${totalCount}`;
+        renderSidebarCameraTree(statuses);
+        applyCameraCardFilters();
+      } catch (e) {}
+    }
+
+    let _openTreeCam = "";
+    function renderSidebarCameraTree(statuses) {
+      const box = document.getElementById("bcSidebarCamTree");
+      if (!box) return;
+      const entries = Object.entries(statuses || {}).sort((a, b) => {
+        const ao = a[1].state === "online" ? 0 : 1;
+        const bo = b[1].state === "online" ? 0 : 1;
+        return ao !== bo ? ao - bo : a[0].localeCompare(b[0]);
+      });
+      if (!entries.length) {
+        box.innerHTML = `<div style="padding:6px 12px;font-size:11.5px;color:var(--text-muted);">Nenhum equipamento listado</div>`;
+        return;
+      }
+      box.innerHTML = entries.slice(0, 10).map(([cname, st]) => {
+        const shapeCls = st.state === "online" ? "online" : (st.state === "auth_needed" ? "auth" : "wait");
+        const isOpen = _openTreeCam === cname;
+        const shortName = cname.replace(/^Pumatronix_|^IntelBras_|^Intelbras_|^Hikvision_/i, "");
+        const safeC = cname.replace(/'/g, "\\'");
+        return `<div class="bc-tree-cam ${isOpen ? 'open' : ''}">
+          <button type="button" class="bc-tree-cam-btn" onclick="toggleTreeCamNode('${safeC}')">
+            <span class="bc-tree-shape ${shapeCls}"></span>
+            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${shortName}</span>
+            ${st.state === "online" ? `<span style="font-size:10px;color:#16a34a;font-weight:800;">●</span>` : ``}
+          </button>
+          <div class="bc-tree-children">
+            <button type="button" class="bc-tree-sub" onclick="focusCameraCard('${safeC}')"><span class="bc-tree-sub-box"></span>Player Ao Vivo</button>
+            <a class="bc-tree-sub" href="/veiculos?cam=${encodeURIComponent(cname)}"><span class="bc-tree-sub-box"></span>Leituras Veiculares</a>
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+    function toggleTreeCamNode(cname) {
+      _openTreeCam = (_openTreeCam === cname) ? "" : cname;
+      renderSidebarCameraTree(window.latestCameraStatuses || {});
+    }
+
+    function focusCameraCard(cname) {
+      const card = document.getElementById(`card-${cname}`);
+      if (card) {
+        card.style.display = "";
+        card.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+
+    function toggleSidebarRail() {
+      const sb = document.getElementById("bcSidebar");
+      if (!sb) return;
+      sb.classList.toggle("collapsed");
+      localStorage.setItem("bc_sidebar_collapsed", sb.classList.contains("collapsed") ? "1" : "0");
+    }
+
+    function expandSidebarAndSearch() {
+      const sb = document.getElementById("bcSidebar");
+      if (sb && sb.classList.contains("collapsed")) {
+        sb.classList.remove("collapsed");
+        localStorage.setItem("bc_sidebar_collapsed", "0");
+      }
+      const inp = document.getElementById("bcSidebarSearchInput");
+      if (inp) setTimeout(() => inp.focus(), 40);
+    }
+
+    function onSidebarSearchInput(val) {
+      const qEl = document.getElementById("camQuickSearch");
+      if (qEl) {
+        qEl.value = val;
+        applyCameraCardFilters();
+      }
+    }
+
+    function onSidebarSearchKey(ev, val) {
+      if (ev.key === "Enter" && val && val.trim().length >= 3) {
+        const clean = val.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+        if (/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(clean)) {
+          window.location.href = `/veiculos?plate=${encodeURIComponent(clean)}`;
+        }
+      }
+    }
+
+    function toggleSbGroup(id) {
+      const g = document.getElementById(id);
+      if (g) g.classList.toggle("closed");
+    }
+
+    function closeAllSbPopovers() {
+      document.querySelectorAll(".bc-sb-popover.open").forEach(el => el.classList.remove("open"));
+    }
+
+    function toggleSbPopover(ev, id) {
+      ev.stopPropagation();
+      const target = document.getElementById(id);
+      if (!target) return;
+      const wasOpen = target.classList.contains("open");
+      closeAllSbPopovers();
+      if (!wasOpen) target.classList.add("open");
+    }
+
+    document.addEventListener("click", () => closeAllSbPopovers());
+    if (localStorage.getItem("bc_sidebar_collapsed") === "1") {
+      const _sbInit = document.getElementById("bcSidebar");
+      if (_sbInit) _sbInit.classList.add("collapsed");
+    }
+
+    async function refreshBrascontrolKpis() {
+      try {
+        const res = await fetch("/api/plate_gallery?limit=1");
+        const data = await res.json();
+        const st = data.stats || {};
+        const elPlates = document.getElementById("bcKpiPlates");
+        const elToday = document.getElementById("bcKpiTodayPlates");
+        const elConf = document.getElementById("bcKpiConf");
+        const elSub = document.getElementById("bcDashboardSub");
+        if (elPlates) elPlates.textContent = st.valid_plates ?? 0;
+        if (elToday) elToday.textContent = st.today ?? 0;
+        if (elConf) elConf.textContent = `${st.avg_conf ?? 0}%`;
+        const sbPl = document.getElementById("sbBadgePlates");
+        if (sbPl) sbPl.textContent = st.valid_plates ?? st.total ?? 0;
+        if (elSub) {
+          const nowT = new Date().toLocaleTimeString("pt-BR");
+          const tot = st.cameras_total ?? 0;
+          const onl = st.cameras_online ?? 0;
+          elSub.textContent = `Monitoramento contínuo: ativo · motor OCR ${(st.active_engine || "rapidocr").toUpperCase()} · última atualização ${nowT} (${tot} equipamentos: ${onl} online / ${Math.max(0, tot - onl)} aguardando credencial)`;
+        }
+      } catch (e) {}
+    }
+
+    let lastDiscoveredList = [];
+    function openScannerModal() {
+      document.getElementById("scannerModal").style.display = "flex";
+    }
+    function closeScannerModal() {
+      document.getElementById("scannerModal").style.display = "none";
+    }
+    async function runNetworkScan() {
+      const sub = document.getElementById("scanSubnetInput").value.trim();
+      const usr = document.getElementById("scanUserInput").value.trim();
+      const pwd = document.getElementById("scanPassInput").value;
+      const box = document.getElementById("scanResultsBox");
+      box.innerHTML = "<p>Varrendo rede (WS-Discovery ONVIF, Hikvision SADP, Intelbras DHIP, Pumatronix CGI, RTSP)...</p>";
+      try {
+        const qs = new URLSearchParams({ subnet: sub, user: usr, password: pwd });
+        const res = await fetch(`/discover_cameras?${qs.toString()}`);
+        const data = await res.json();
+        lastDiscoveredList = data.cameras || [];
+        if (!lastDiscoveredList.length) {
+          box.innerHTML = "<p>Nenhuma camera encontrada nesta faixa.</p>";
+          return;
+        }
+        let html = `<table style="width:100%; border-collapse:collapse; font-size:13px;">
+          <thead><tr style="background:var(--bg-secondary);">
+            <th style="padding:6px;"><input type="checkbox" checked onchange="document.querySelectorAll('.scan-cam-chk').forEach(c=>c.checked=this.checked)"></th>
+            <th style="padding:6px; text-align:left;">IP</th>
+            <th style="padding:6px; text-align:left;">Fabricante / Modelo</th>
+            <th style="padding:6px; text-align:left;">Protocolos</th>
+            <th style="padding:6px; text-align:left;">Nome</th>
+            <th style="padding:6px; text-align:left;">URL Sugerida</th>
+          </tr></thead><tbody>`;
+        lastDiscoveredList.forEach((c, idx) => {
+          html += `<tr style="border-bottom:1px solid var(--border-color);">
+            <td style="padding:6px; text-align:center;"><input type="checkbox" class="scan-cam-chk" data-idx="${idx}" ${c.already_added ? "" : "checked"}></td>
+            <td style="padding:6px;"><strong>${c.ip}</strong>${c.already_added ? ' <small style="color:#198754;">(na lista)</small>' : ''}</td>
+            <td style="padding:6px;">${c.vendor} ${c.model || ""}</td>
+            <td style="padding:6px;">${(c.protocols || []).join(", ")}</td>
+            <td style="padding:6px;"><input type="text" id="scan-name-${idx}" value="${c.suggested_name}" style="width:145px; padding:3px;"></td>
+            <td style="padding:6px;"><input type="text" id="scan-url-${idx}" value="${c.suggested_url}" style="width:280px; padding:3px;"></td>
+          </tr>`;
+        });
+        html += `</tbody></table>`;
+        box.innerHTML = html;
+      } catch (err) {
+        box.innerHTML = `<p style="color:red;">Erro ao escanear: ${err}</p>`;
+      }
+    }
+
+    async function addSelectedScannedCameras() {
+      const checks = document.querySelectorAll(".scan-cam-chk:checked");
+      const toAdd = [];
+      checks.forEach(chk => {
+        const idx = chk.dataset.idx;
+        const cam_name = document.getElementById(`scan-name-${idx}`).value.trim();
+        const src = document.getElementById(`scan-url-${idx}`).value.trim();
+        if (cam_name && src) toAdd.push({ cam_name, src });
+      });
+      if (!toAdd.length) { alert("Selecione ao menos uma camera."); return; }
+      await fetch("/batch_add_cameras", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cameras: toAdd })
+      });
+      closeScannerModal();
+      fetchCameras();
+    }
+
+    function openOcrModal() {
+      document.getElementById("ocrModal").style.display = "flex";
+      const sel = document.getElementById("ocrCamSelect");
+      sel.innerHTML = "";
+      (window.currentCameras || []).forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        sel.appendChild(opt);
+      });
+      loadOcrHistory();
+    }
+    function closeOcrModal() {
+      document.getElementById("ocrModal").style.display = "none";
+    }
+    async function loadOcrHistory() {
+      const q = document.getElementById("ocrFilterInput").value.trim();
+      const res = await fetch(`/ocr_events?q=${encodeURIComponent(q)}&limit=50`);
+      const data = await res.json();
+      const engEl = document.getElementById("ocrEnginesStatus");
+      if (data.engines && engEl) {
+        engEl.innerHTML = Object.entries(data.engines).map(([k, ok]) =>
+          `<span style="padding:2px 8px; border-radius:10px; font-size:12px; background:${ok ? '#198754' : '#dc3545'}; color:#fff;">${k}: ${ok ? 'Instalado' : 'Indisponivel'}</span>`
+        ).join(" ");
+      }
+      const box = document.getElementById("ocrHistoryBox");
+      if (!data.events || !data.events.length) {
+        box.innerHTML = "<p style='color:#888;'>Nenhuma leitura OCR registrada ainda.</p>";
+        return;
+      }
+      box.innerHTML = `<table style="width:100%; border-collapse:collapse; font-size:13px;">
+        <thead><tr style="background:var(--bg-secondary);">
+          <th style="padding:6px; text-align:left;">Data/Hora</th>
+          <th style="padding:6px; text-align:left;">Camera</th>
+          <th style="padding:6px; text-align:left;">Texto / Placa</th>
+          <th style="padding:6px; text-align:left;">Motor</th>
+          <th style="padding:6px; text-align:left;">Confianca</th>
+        </tr></thead><tbody>` +
+        data.events.map(ev => `<tr style="border-bottom:1px solid var(--border-color);">
+          <td style="padding:6px;">${ev.time || ""}</td>
+          <td style="padding:6px;">${ev.cam_name || ""}</td>
+          <td style="padding:6px;"><strong>${ev.text || ""}</strong> ${ev.plate ? `<span style="background:#ffd43b;color:#000;padding:1px 5px;border-radius:3px;font-size:11px;">PLACA</span>` : ""}</td>
+          <td style="padding:6px;">${ev.engine || ""}</td>
+          <td style="padding:6px;">${Math.round((ev.conf || 0)*100)}%</td>
+        </tr>`).join("") + `</tbody></table>`;
+    }
+
+    async function runManualOcr() {
+      const cam = document.getElementById("ocrCamSelect").value;
+      const engine = document.getElementById("ocrEngineTestSelect").value;
+      const plate_mode = document.getElementById("ocrPlateTestChk").checked;
+      const fileInput = document.getElementById("ocrUploadFile");
+      let image_b64 = null;
+      if (fileInput.files && fileInput.files[0]) {
+        image_b64 = await new Promise(resolve => {
+          const r = new FileReader();
+          r.onload = e => resolve(e.target.result);
+          r.readAsDataURL(fileInput.files[0]);
+        });
+      }
+      const out = document.getElementById("ocrLiveResult");
+      out.innerHTML = "Executando OCR...";
+      const res = await fetch("/ocr_test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cam, engine, plate_mode, image_b64 })
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        out.innerHTML = `<span style="color:#ff6b6b;">${data.error}</span>`;
+        return;
+      }
+      const items = (data.results || []).map(r => `<li><strong>${r.text}</strong> (conf: ${Math.round(r.conf*100)}%, motor: ${r.engine})</li>`).join("");
+      out.innerHTML = `<div>Tempo: ${data.elapsed_ms} ms</div><ul>${items || "<li>Nenhum texto detectado no frame.</li>"}</ul>` +
+        (data.preview ? `<img src="${data.preview}" style="max-width:320px; border-radius:4px; margin-top:6px;">` : "");
+      loadOcrHistory();
+      refreshCameraBadges();
+    }
+
+    async function openProtocolsModal() {
+      document.getElementById("protocolsModal").style.display = "flex";
+      const psel = document.getElementById("pumaCamSelect");
+      psel.innerHTML = "";
+      (window.currentCameras || []).forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        psel.appendChild(opt);
+      });
+      const res = await fetch("/isup_status");
+      const isup = await res.json();
+      document.getElementById("isupStatusBox").innerHTML =
+        `Porta Listener: <strong>${isup.port || 7660}</strong> (${isup.listening ? 'ATIVO' : 'PARADO'}) | SDK Oficial: ${isup.sdk_loaded ? 'Carregado' : 'Modo Socket Python (' + isup.sdk_dir + ')'}<br>` +
+        `Dispositivos recebidos na 7660: <strong>${(isup.devices || []).length}</strong>` +
+        ((isup.devices && isup.devices.length) ? `<pre style="font-size:11px;">${JSON.stringify(isup.devices, null, 2)}</pre>` : "");
+    }
+    function closeProtocolsModal() {
+      document.getElementById("protocolsModal").style.display = "none";
+    }
+    async function pumaAction(action) {
+      const cam = document.getElementById("pumaCamSelect").value;
+      const modo = document.getElementById("pumaFlashSelect").value;
+      const box = document.getElementById("pumaOutputBox");
+      box.innerHTML = "Consultando Pumatronix ITSCAM...";
+      const qs = new URLSearchParams({ cam, action, modo });
+      const res = await fetch(`/pumatronix_api?${qs.toString()}`);
+      const data = await res.json();
+      if (!data.ok) {
+        box.innerHTML = `<span style="color:#ff6b6b;">Erro: ${data.error}</span>`;
+        return;
+      }
+      if (data.image_b64) {
+        const ocrTxt = (data.ocr || []).map(o => `${o.text} (${Math.round(o.conf*100)}%)`).join(", ") || "sem texto";
+        box.innerHTML = `<div><strong>OCR Snapshot:</strong> ${ocrTxt}</div><img src="${data.image_b64}" style="max-width:100%; max-height:280px; margin-top:6px; border-radius:4px;">`;
+      } else {
+        box.innerHTML = `<pre style="max-height:220px; overflow:auto; font-size:12px; background:var(--bg-secondary); padding:8px;">${JSON.stringify(data.config || data.result || data, null, 2)}</pre>`;
+      }
+    }
+    async function testOnvifInspect() {
+      const host = document.getElementById("onvifHostInput").value.trim();
+      const user = document.getElementById("onvifUserInput").value.trim();
+      const password = document.getElementById("onvifPassInput").value;
+      const box = document.getElementById("onvifOutputBox");
+      box.innerHTML = "Consultando ONVIF SOAP...";
+      const qs = new URLSearchParams({ host, user, password });
+      const res = await fetch(`/onvif_inspect?${qs.toString()}`);
+      const data = await res.json();
+      box.innerHTML = `<pre style="max-height:180px; overflow:auto; font-size:12px; background:var(--bg-secondary); padding:8px;">${JSON.stringify(data, null, 2)}</pre>`;
+    }
+
+    fetchCameras().then(() => {
+      refreshCameraBadges();
+      refreshBrascontrolKpis();
+      const act = new URLSearchParams(window.location.search).get("action");
+      if (act === "scanner") openScannerModal();
+      else if (act === "ocr") openOcrModal();
+      else if (act === "protocols") openProtocolsModal();
+      else if (act === "settings") openSettingsModal();
+      else if (act === "multiview") setTimeout(toggleMultiView, 500);
+    });
     setInterval(fetchCameras, 5000);
+    setInterval(refreshCameraBadges, 3000);
+    setInterval(refreshBrascontrolKpis, 5000);
   </script>
+
+  <!-- Modal: Scanner de Rede -->
+  <div id="scannerModal" class="modal">
+    <div class="modal-content" style="max-width:920px; width:95%; max-height:90vh; overflow-y:auto;">
+      <div class="modal-header">
+        <h3>Varredura de Equipamentos — Brascontrol Smart Cam (Intelbras / Hikvision / Pumatronix / ONVIF / RTSP)</h3>
+        <span class="close" onclick="closeScannerModal()">&times;</span>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; align-items:center;">
+        <input type="text" id="scanSubnetInput" value="192.168.1.0/24" placeholder="Faixa CIDR ex: 192.168.1.0/24" style="padding:7px 10px; border-radius:7px; border:1px solid var(--border-color); background:var(--bg-primary); color:var(--text-primary); width:165px;">
+        <input type="text" id="scanUserInput" placeholder="Usuário padrão (ex: admin)" value="admin" style="padding:7px 10px; border-radius:7px; border:1px solid var(--border-color); background:var(--bg-primary); color:var(--text-primary); width:160px;">
+        <input type="password" id="scanPassInput" placeholder="Senha das câmeras (opcional)" style="padding:7px 10px; border-radius:7px; border:1px solid var(--border-color); background:var(--bg-primary); color:var(--text-primary); width:185px;">
+        <button onclick="runNetworkScan()" style="background:var(--brand); color:#fff; border:none; padding:8px 16px; border-radius:8px; font-weight:700; cursor:pointer;">Varrer Rede Agora</button>
+        <button onclick="addSelectedScannedCameras()" style="background:#15803d; color:#fff; border:none; padding:8px 16px; border-radius:8px; font-weight:700; cursor:pointer;">Inserir / Atualizar Selecionadas</button>
+      </div>
+      <div id="scanResultsBox"><p style="color:var(--text-muted);">Clique em "Varrer Rede Agora" para descobrir câmeras e gravadores na sub-rede.</p></div>
+    </div>
+  </div>
+
+  <!-- Modal: Modulo OCR / LPR -->
+  <div id="ocrModal" class="modal">
+    <div class="modal-content" style="max-width:840px; width:95%; max-height:90vh; overflow-y:auto;">
+      <div class="modal-header">
+        <h3>Módulo OCR & LPR — Brascontrol Smart Cam</h3>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <a href="/galeria" style="background:var(--brand); color:#fff; text-decoration:none; padding:6px 13px; border-radius:7px; font-size:12.5px; font-weight:700;">Abrir Galeria de Placas &rarr;</a>
+          <span class="close" onclick="closeOcrModal()">&times;</span>
+        </div>
+      </div>
+      <div id="ocrEnginesStatus" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;"></div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:12px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:9px;">
+        <select id="ocrCamSelect" style="padding:7px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-primary); color:var(--text-primary);"></select>
+        <select id="ocrEngineTestSelect" style="padding:7px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-primary); color:var(--text-primary);">
+          <option value="rapidocr">RapidOCR (PaddleOCR ONNX)</option>
+          <option value="tesseract">Tesseract OCR</option>
+          <option value="easyocr">EasyOCR</option>
+          <option value="ensemble">Ensemble (Todos)</option>
+        </select>
+        <label style="display:flex; align-items:center; gap:5px; font-size:13px;">
+          <input type="checkbox" id="ocrPlateTestChk"> Modo Placa BR/Mercosul
+        </label>
+        <input type="file" id="ocrUploadFile" accept="image/*" style="font-size:12px; max-width:190px;">
+        <button onclick="runManualOcr()" style="background:var(--brand); color:#fff; border:none; padding:8px 16px; border-radius:8px; font-weight:700; cursor:pointer;">Ler OCR Agora</button>
+      </div>
+      <div id="ocrLiveResult" style="margin:10px 0; font-size:13px;"></div>
+      <hr style="border-color:var(--border-color);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin:10px 0;">
+        <h4 style="margin:0; color:var(--brand); text-transform:uppercase; font-size:13px;">Histórico de Leituras OCR</h4>
+        <input type="text" id="ocrFilterInput" placeholder="Filtrar placa/texto..." oninput="loadOcrHistory()" style="padding:6px 10px; border-radius:7px; border:1px solid var(--border-color); background:var(--bg-primary); color:var(--text-primary);">
+      </div>
+      <div id="ocrHistoryBox"></div>
+    </div>
+  </div>
+
+  <!-- Modal: Pumatronix CGI / ONVIF / ISUP -->
+  <div id="protocolsModal" class="modal">
+    <div class="modal-content" style="max-width:840px; width:95%; max-height:90vh; overflow-y:auto;">
+      <div class="modal-header">
+        <h3>Protocolos Brascontrol Smart Cam — Pumatronix CGI · ONVIF · ISUP 5.0</h3>
+        <span class="close" onclick="closeProtocolsModal()">&times;</span>
+      </div>
+      <h4 style="color:var(--brand); font-size:13px; text-transform:uppercase;">1. APIs Pumatronix ITSCAM</h4>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <select id="pumaCamSelect" style="padding:7px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-primary); color:var(--text-primary);"></select>
+        <select id="pumaFlashSelect" style="padding:7px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-primary); color:var(--text-primary);">
+          <option value="5">Flash: 5 - Automático</option>
+          <option value="1">Flash: 1 - Desativado</option>
+          <option value="2">Flash: 2 - Modo Único</option>
+          <option value="4">Flash: 4 - Contínuo</option>
+          <option value="7">Flash: 7 - Contínuo Night</option>
+        </select>
+        <button onclick="pumaAction('snapshot')" class="bc-btn bc-btn-primary" style="padding:7px 12px;">Snapshot + OCR (snapshot.cgi)</button>
+        <button onclick="pumaAction('trigger')" class="bc-btn" style="padding:7px 12px;">Trigger (trigger.cgi)</button>
+        <button onclick="pumaAction('config')" class="bc-btn" style="padding:7px 12px;">Ler Config (config.cgi?tudo)</button>
+        <button onclick="pumaAction('set_flash')" class="bc-btn" style="padding:7px 12px;">Aplicar Flash</button>
+        <button onclick="pumaAction('watchdog')" class="bc-btn" style="padding:7px 12px;">Watchdog</button>
+      </div>
+      <div id="pumaOutputBox" style="margin-top:8px;"></div>
+      <hr style="border-color:var(--border-color); margin:14px 0;">
+      <h4 style="color:var(--brand); font-size:13px; text-transform:uppercase;">2. Inspeção ONVIF SOAP (GetDeviceInformation / GetProfiles / GetStreamUri)</h4>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <input type="text" id="onvifHostInput" value="192.168.1.31" placeholder="IP ONVIF" style="padding:7px 10px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-primary); color:var(--text-primary); width:140px;">
+        <input type="text" id="onvifUserInput" value="admin" placeholder="Usuário" style="padding:7px 10px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-primary); color:var(--text-primary); width:120px;">
+        <input type="password" id="onvifPassInput" placeholder="Senha ONVIF" style="padding:7px 10px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-primary); color:var(--text-primary); width:140px;">
+        <button onclick="testOnvifInspect()" class="bc-btn bc-btn-primary" style="padding:7px 14px;">Consultar Perfis ONVIF</button>
+      </div>
+      <div id="onvifOutputBox" style="margin-top:8px;"></div>
+      <hr style="border-color:var(--border-color); margin:14px 0;">
+      <h4 style="color:var(--brand); font-size:13px; text-transform:uppercase;">3. Gateway Hikvision ISUP 5.0 (EHome Porta 7660)</h4>
+      <div id="isupStatusBox" style="font-size:13px;">Carregando status ISUP...</div>
+    </div>
+  </div>
 </body>
 </html>

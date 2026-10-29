@@ -182,7 +182,7 @@ def export_and_upload(cam_name, thumbnail, userID, key, start=None, end=0, lengt
     mp4_filename = BASE_DIR / "cameras" / f"{cam_name}/event_clips/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.mp4"
     temp_output = BASE_DIR / "cameras" / f"{cam_name}/event_clips/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_temp.mp4"
     export_clip(BASE_DIR / "cameras" / f"{cam_name}/streams/{datetime.now().strftime('%Y-%m-%d')}", Path(mp4_filename), length=length, start=start, end=end)
-    subprocess.run(['ffmpeg', '-i', mp4_filename, '-i', str(thumbnail), '-map', '0', '-map', '1', '-c', 'copy', '-disposition:v:1', 'attached_pic', '-y', temp_output])
+    subprocess.run([find_ffmpeg(), '-i', mp4_filename, '-i', str(thumbnail), '-map', '0', '-map', '1', '-c', 'copy', '-disposition:v:1', 'attached_pic', '-y', temp_output])
     os.replace(temp_output, mp4_filename)
     encrypt_file(Path(mp4_filename), Path(f"""{mp4_filename}.aes"""), key)
     upload_file(Path(f"{mp4_filename}.aes"), userID)
@@ -201,10 +201,19 @@ def find_ffmpeg():
     ffmpeg_path = shutil.which('ffmpeg')
     if ffmpeg_path:
         return ffmpeg_path
+    try:
+        import imageio_ffmpeg
+        exe = imageio_ffmpeg.get_ffmpeg_exe()
+        if exe and os.path.exists(exe):
+            return exe
+    except Exception:
+        pass
     common_paths = [
         '/opt/homebrew/bin/ffmpeg',
         '/usr/local/bin/ffmpeg',
-        '/usr/bin/ffmpeg'
+        '/usr/bin/ffmpeg',
+        r'C:\ffmpeg\bin\ffmpeg.exe',
+        r'C:\Program Files\ffmpeg\bin\ffmpeg.exe',
     ]
     for path in common_paths:
         if os.path.exists(path):

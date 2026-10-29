@@ -1,0 +1,12 @@
+# Ambiente Python
+.venv/
+__pycache__/
+*.pyc
+
+# Dados de runtime: banco com links/senhas das câmeras, gravações, placas (LGPD)
+data/
+
+# Artefatos gerados pelo ffmpeg/HLS fora da pasta do stream
+/init*.mp4
+/segment.mp4
+/segment.mp4.aes

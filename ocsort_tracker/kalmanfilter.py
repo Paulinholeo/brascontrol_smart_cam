@@ -64,12 +64,12 @@ class KalmanFilter(object):
       indices = np.where(np.array(occur)==0)[0]
       index1 = indices[-2]
       index2 = indices[-1]
-      box1 = self.history_obs[index1]
-      x1, y1, s1, r1 = box1 
+      box1 = np.asarray(self.history_obs[index1], dtype=float).reshape(-1)
+      x1, y1, s1, r1 = box1
       w1 = np.sqrt(s1 * r1)
       h1 = np.sqrt(s1 / r1)
-      box2 = self.history_obs[index2]
-      x2, y2, s2, r2 = box2 
+      box2 = np.asarray(self.history_obs[index2], dtype=float).reshape(-1)
+      x2, y2, s2, r2 = box2
       w2 = np.sqrt(s2 * r2)
       h2 = np.sqrt(s2 / r2)
       time_gap = index2 - index1

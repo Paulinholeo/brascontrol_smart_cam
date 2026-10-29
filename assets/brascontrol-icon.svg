@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bcGrad" x1="6" y1="6" x2="58" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#a61e34"/>
+      <stop offset="100%" stop-color="#6e1322"/>
+    </linearGradient>
+    <linearGradient id="lensGlow" x1="20" y1="18" x2="44" y2="46" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.98"/>
+      <stop offset="100%" stop-color="#f8d7dd" stop-opacity="0.9"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#bcGrad)"/>
+  <path d="M16 23V18.5C16 17.12 17.12 16 18.5 16H23" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-opacity="0.85"/>
+  <path d="M48 23V18.5C48 17.12 46.88 16 45.5 16H41" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-opacity="0.85"/>
+  <path d="M16 41V45.5C16 46.88 17.12 48 18.5 48H23" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-opacity="0.85"/>
+  <path d="M48 41V45.5C48 46.88 46.88 48 45.5 48H41" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-opacity="0.85"/>
+  <circle cx="32" cy="32" r="11.5" stroke="url(#lensGlow)" stroke-width="3.2"/>
+  <circle cx="32" cy="32" r="5" fill="#ffffff"/>
+  <circle cx="43.5" cy="20.5" r="2.6" fill="#4ade80"/>
+</svg>

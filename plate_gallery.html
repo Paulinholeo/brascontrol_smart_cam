@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brascontrol Smart Cam — Galeria de Placas | Brascontrol ITS</title>
+  <link rel="icon" type="image/png" href="/assets/favicon.png?v=2" />
+  <style>
+    :root {
+      --bg-page: #f5eff0;
+      --bg-sidebar: #ffffff;
+      --bg-panel: #ffffff;
+      --bg-card: #ffffff;
+      --bg-subtle: #faf6f7;
+      --border: #eadde0;
+      --text-main: #1e2024;
+      --text-muted: #686064;
+      --brand: #891c2e;
+      --brand-hover: #6d1423;
+      --brand-soft: #fdf2f4;
+      --green: #15803d;
+      --green-soft: linear-gradient(135deg, #f2fbf5 0%, #e5f6eb 100%);
+      --amber: #9a5b06;
+      --amber-soft: linear-gradient(135deg, #fefcf3 0%, #faefd8 100%);
+      --rose-soft: linear-gradient(135deg, #fdf6f7 0%, #f7eaed 100%);
+      --blue: #003399;
+      --shadow: 0 2px 12px rgba(45, 20, 26, 0.05);
+    }
+
+    body.dark {
+      --bg-page: #0f1115;
+      --bg-sidebar: #161920;
+      --bg-panel: #1a1e26;
+      --bg-card: #202530;
+      --bg-subtle: #151820;
+      --border: #2d3442;
+      --text-main: #f3f4f6;
+      --text-muted: #9aa3b2;
+      --brand: #d6334c;
+      --brand-hover: #eb415b;
+      --brand-soft: #2c171d;
+      --green: #22c55e;
+      --green-soft: linear-gradient(135deg, #13261c 0%, #173022 100%);
+      --amber: #f59e0b;
+      --amber-soft: linear-gradient(135deg, #292012 0%, #332714 100%);
+      --rose-soft: linear-gradient(135deg, #25171c 0%, #2e1b21 100%);
+      --shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      background: var(--bg-page);
+      color: var(--text-main);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Modern Collapsible Sidebar (Concept UI) */
+    .sidebar {
+      width: 272px;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      padding: 16px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      flex-shrink: 0;
+      overflow-y: auto;
+      overflow-x: visible;
+      z-index: 80;
+      box-shadow: 4px 0 24px rgba(15, 23, 42, 0.035);
+      transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1), padding 0.22s ease;
+      scrollbar-width: thin;
+    }
+    .sidebar.collapsed {
+      width: 78px;
+      padding: 16px 10px 14px;
+    }
+    .sb-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 4px 6px 14px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 8px;
+      position: relative;
+    }
+    .sidebar.collapsed .sb-header {
+      justify-content: center;
+      padding: 4px 0 14px;
+    }
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      text-decoration: none;
+      min-width: 0;
+      flex: 1;
+    }
+    .sidebar.collapsed .brand-logo {
+      justify-content: center;
+      flex: 0;
+    }
+    .brand-mark {
+      height: 36px;
+      width: auto;
+      max-width: 34px;
+      object-fit: contain;
+      flex-shrink: 0;
+      display: block;
+      background: transparent;
+      border-radius: 0;
+      box-shadow: none;
+      transition: transform 0.16s ease, filter 0.16s ease;
+    }
+    body.dark .brand-mark { filter: brightness(1.18) saturate(1.1); }
+    .brand-logo:hover .brand-mark { transform: scale(1.04); }
+    .brand-copy { display: flex; flex-direction: column; min-width: 0; gap: 2px; }
+    .brand-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.2px;
+      line-height: 1.15;
+      white-space: nowrap;
+    }
+    .brand-sub {
+      font-size: 10px;
+      color: var(--brand);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      white-space: nowrap;
+    }
+    .sidebar.collapsed .brand-copy,
+    .sidebar.collapsed .sb-more-wrap { display: none; }
+    .sb-icon-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .sb-icon-btn:hover { background: var(--bg-subtle); color: var(--text-main); }
+    .sb-search {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 11px;
+      margin: 0 2px 10px;
+    }
+    .sb-search:focus-within {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(137, 28, 46, 0.1);
+      background: var(--bg-card);
+    }
+    .sb-search svg { width: 16px; height: 16px; color: var(--text-muted); flex-shrink: 0; }
+    .sb-search input {
+      border: none;
+      background: transparent;
+      outline: none;
+      color: var(--text-main);
+      font-size: 13px;
+      width: 100%;
+    }
+    .sidebar.collapsed .sb-search { justify-content: center; padding: 9px 0; cursor: pointer; }
+    .sidebar.collapsed .sb-search input { display: none; }
+    .nav-group-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 10px 10px 4px;
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.75px;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+    }
+    .nav-group-left { display: inline-flex; align-items: center; gap: 6px; }
+    .group-chev { width: 12px; height: 12px; transition: transform 0.18s ease; }
+    .nav-group.closed .group-chev { transform: rotate(-90deg); }
+    .nav-group.closed .nav-group-body { display: none; }
+    .sidebar.collapsed .nav-group-head { display: none; }
+    .nav-row { position: relative; display: flex; align-items: center; }
+    .nav-item {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9.5px 12px;
+      border-radius: 11px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid transparent;
+      background: transparent;
+      text-align: left;
+      width: 100%;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .nav-item:hover { background: var(--bg-subtle); color: var(--text-main); }
+    .nav-row:hover .nav-item:not(.active) { border-color: var(--border); background: var(--bg-subtle); }
+    .nav-item.active {
+      background: var(--brand-soft);
+      color: var(--brand);
+      font-weight: 700;
+    }
+    .nav-item.active::before {
+      content: "";
+      position: absolute;
+      left: -14px;
+      top: 8px;
+      bottom: 8px;
+      width: 3.5px;
+      border-radius: 0 4px 4px 0;
+      background: var(--brand);
+    }
+    .sidebar.collapsed .nav-item { justify-content: center; padding: 11px 0; }
+    .sidebar.collapsed .nav-item.active::before { left: -10px; }
+    .sb-ico {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: currentColor;
+    }
+    .sb-ico svg { width: 20px; height: 20px; stroke-width: 1.85; }
+    .sb-label { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar.collapsed .sb-label { display: none; }
+    .sb-badge {
+      font-size: 11px;
+      font-weight: 800;
+      min-width: 21px;
+      height: 21px;
+      padding: 0 6.5px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #ef4444;
+      color: #fff;
+      line-height: 1;
+      box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+    }
+    .sb-badge.soft { background: var(--bg-subtle); color: var(--text-muted); border: 1px solid var(--border); box-shadow: none; }
+    .sb-badge.green { background: #16a34a; color: #fff; box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25); }
+    .sidebar.collapsed .sb-badge {
+      position: absolute;
+      top: 3px;
+      right: 9px;
+      min-width: 17px;
+      height: 17px;
+      font-size: 9.5px;
+      padding: 0 4.5px;
+      border: 2px solid var(--bg-sidebar);
+    }
+    .sb-plus {
+      position: absolute;
+      right: 8px;
+      width: 23px;
+      height: 23px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--brand);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      z-index: 3;
+    }
+    .sb-plus:hover { background: var(--brand); color: #fff; border-color: var(--brand); }
+    .sidebar.collapsed .sb-plus { display: none; }
+    .sb-popover {
+      position: absolute;
+      left: calc(100% - 16px);
+      top: 34px;
+      min-width: 215px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 7px;
+      box-shadow: 0 14px 36px rgba(15, 23, 42, 0.16);
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      z-index: 250;
+    }
+    .sb-popover.open { display: flex; }
+    .sb-pop-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 11px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-main);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: left;
+      width: 100%;
+    }
+    .sb-pop-item:hover { background: var(--bg-subtle); color: var(--brand); }
+    .sb-pop-left { display: inline-flex; align-items: center; gap: 9px; }
+    .pop-dot { width: 6.5px; height: 6.5px; border-radius: 50%; flex-shrink: 0; }
+    .sidebar.collapsed .nav-item[data-tip]:hover::after {
+      content: attr(data-tip);
+      position: fixed;
+      left: 84px;
+      background: #18181b;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 8px;
+      white-space: nowrap;
+      z-index: 999;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+      pointer-events: none;
+    }
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .sidebar.collapsed .sidebar-footer { justify-content: center; }
+    .sb-status-pill {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .sb-status-dot {
+      width: 7.5px;
+      height: 7.5px;
+      border-radius: 50%;
+      background: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.18);
+    }
+    .sidebar.collapsed .sb-status-pill { display: none; }
+    .sb-collapse-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: var(--bg-subtle);
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.16s ease;
+    }
+    .sb-collapse-btn:hover { background: var(--brand-soft); color: var(--brand); border-color: var(--brand); }
+    .sb-collapse-btn svg { width: 16px; height: 16px; transition: transform 0.22s ease; }
+    .sidebar.collapsed .sb-collapse-btn svg { transform: rotate(180deg); }
+
+    /* Main Content */
+    .main {
+      flex: 1;
+      padding: 16px 20px;
+      max-width: 1720px;
+      width: 100%;
+    }
+    .main-panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 26px 28px;
+      box-shadow: var(--shadow);
+      min-height: calc(100vh - 32px);
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .page-heading h1 {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      text-transform: uppercase;
+    }
+    .page-heading p {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 9px 16px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-main);
+      transition: all 0.15s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .btn:hover { filter: brightness(0.97); }
+    .btn-primary {
+      background: var(--brand);
+      color: #fff;
+      border-color: var(--brand);
+    }
+    .btn-primary:hover { background: var(--brand-hover); }
+
+    /* KPI Strip */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .kpi-card {
+      background: var(--rose-soft);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 15px 18px;
+    }
+    .kpi-card.kpi-green { background: var(--green-soft); border-color: rgba(21,128,61,0.22); }
+    .kpi-card.kpi-brand { background: var(--rose-soft); border-color: rgba(137,28,46,0.18); }
+    .kpi-card.kpi-amber { background: var(--amber-soft); border-color: rgba(180,83,9,0.22); }
+    .kpi-label {
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .kpi-val {
+      font-size: 27px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--brand);
+    }
+    .kpi-green .kpi-val { color: var(--green); }
+    .kpi-brand .kpi-val { color: var(--brand); }
+    .kpi-amber .kpi-val { color: var(--amber); }
+
+    /* Filter Toolbar */
+    .filter-bar {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+    .filter-bar input[type="text"],
+    .filter-bar select {
+      padding: 8px 12px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--bg-subtle);
+      color: var(--text-main);
+      font-size: 13px;
+      outline: none;
+    }
+    .filter-bar input[type="text"] { min-width: 230px; flex: 1; }
+    .chk-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+    }
+    .status-strip {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Gallery Grid */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(430px, 1fr));
+      gap: 18px;
+    }
+    @media (max-width: 560px) {
+      .gallery-grid { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+    }
+
+    .plate-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.14s ease, box-shadow 0.14s ease;
+    }
+    .plate-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(31, 26, 28, 0.11);
+    }
+
+    .card-header {
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--bg-subtle);
+    }
+
+    /* Mercosul Visual License Plate */
+    .mercosul-plate {
+      display: inline-flex;
+      flex-direction: column;
+      border: 2px solid #1a1a1a;
+      border-radius: 5px;
+      background: #ffffff;
+      color: #111111;
+      min-width: 128px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+    }
+    .mercosul-top {
+      background: var(--blue);
+      color: #ffffff;
+      font-size: 8.5px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-align: center;
+      padding: 2px 6px;
+      line-height: 1.1;
+    }
+    .mercosul-code {
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-align: center;
+      padding: 3px 10px 4px;
+      line-height: 1.1;
+      color: #111111;
+    }
+    .ocr-generic-badge {
+      padding: 5px 10px;
+      border-radius: 6px;
+      background: var(--amber-soft);
+      color: var(--amber);
+      border: 1px solid rgba(180,83,9,0.28);
+      font-family: monospace;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .badges-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      text-transform: uppercase;
+    }
+    .pill-conf { background: var(--green-soft); color: var(--green); }
+    .pill-eng { background: var(--brand-soft); color: var(--brand); }
+
+    /* Dual Image Body: Scene + Plate Area */
+    .dual-images {
+      display: grid;
+      grid-template-columns: 1.45fr 1fr;
+      gap: 10px;
+      padding: 12px 14px;
+      align-items: stretch;
+      background: var(--bg-card);
+    }
+    .img-pane {
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      overflow: hidden;
+      background: #0d0f12;
+      cursor: pointer;
+      position: relative;
+    }
+    .pane-tag {
+      background: rgba(18, 20, 24, 0.86);
+      color: #e5e7eb;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 5px 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .pane-tag span.accent { color: #4ade80; }
+    .scene-thumb {
+      width: 100%;
+      height: 175px;
+      object-fit: cover;
+      display: block;
+    }
+    .area-wrap {
+      flex: 1;
+      min-height: 175px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      background: repeating-linear-gradient(
+        45deg,
+        #14171c,
+        #14171c 8px,
+        #191d24 8px,
+        #191d24 16px
+      );
+    }
+    .area-thumb {
+      max-width: 100%;
+      max-height: 120px;
+      object-fit: contain;
+      border: 2px solid #4ade80;
+      border-radius: 5px;
+      background: #fff;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+    }
+    .area-coords {
+      margin-top: 8px;
+      font-size: 10.5px;
+      font-family: monospace;
+      color: #cbd5e1;
+      text-align: center;
+    }
+
+    .card-footer {
+      padding: 10px 14px;
+      border-top: 1px solid var(--border);
+      background: var(--bg-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 12px;
+    }
+    .meta-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .meta-cam { font-weight: 700; color: var(--text-main); }
+    .meta-time { color: var(--text-muted); font-size: 11.5px; }
+    .card-links {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .mini-btn {
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-main);
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .mini-btn:hover { border-color: var(--brand); color: var(--brand); }
+
+    .empty-state {
+      background: var(--bg-card);
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+      padding: 48px 24px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    /* Lightbox Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 12, 16, 0.82);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      max-width: 1180px;
+      width: 100%;
+      max-height: 92vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+    .modal-head {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-body {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 18px;
+      padding: 18px 20px;
+    }
+    @media (max-width: 860px) {
+      .modal-body { grid-template-columns: 1fr; }
+    }
+    .modal-scene-img {
+      width: 100%;
+      max-height: 68vh;
+      object-fit: contain;
+      background: #0b0d10;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .modal-side {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .modal-area-box {
+      background: #101318;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+    .modal-area-box img {
+      max-width: 100%;
+      max-height: 160px;
+      border: 2px solid #4ade80;
+      border-radius: 6px;
+    }
+    .detail-list {
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      background: var(--bg-subtle);
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .detail-row span:first-child { color: var(--text-muted); font-weight: 600; }
+    .detail-row span:last-child { font-weight: 700; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <aside class="sidebar" id="bcSidebar">
+    <div class="sb-header">
+      <a class="brand-logo" href="/" title="Brascontrol Smart Cam">
+        <img class="brand-mark" src="/assets/brascontrol-b.png?v=2" alt="Brascontrol" />
+        <div class="brand-copy">
+          <span class="brand-title">Brascontrol</span>
+          <span class="brand-sub">Smart Cam · ITS</span>
+        </div>
+      </a>
+      <div class="sb-more-wrap" style="position:relative;">
+        <button type="button" class="sb-icon-btn" onclick="toggleSbPopover(event, 'sbHeaderPop')" title="Opções rápidas">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="12" cy="19" r="1.3"/></svg>
+        </button>
+        <div class="sb-popover" id="sbHeaderPop" style="left:auto; right:0; top:34px;">
+          <button type="button" class="sb-pop-item" onclick="closeAllSbPopovers(); captureNow();">
+            <span class="sb-pop-left"><span class="pop-dot" style="background:#16a34a;"></span>Capturar Placas Agora</span>
+          </button>
+          <button type="button" class="sb-pop-item" onclick="closeAllSbPopovers(); exportCSV();">
+            <span class="sb-pop-left"><span class="pop-dot" style="background:#2563eb;"></span>Exportar Relatório CSV</span>
+          </button>
+          <button type="button" class="sb-pop-item" onclick="closeAllSbPopovers(); toggleTheme();">
+            <span class="sb-pop-left"><span class="pop-dot" style="background:#d97706;"></span>Alternar Tema Claro/Escuro</span>
+          </button>
+          <button type="button" class="sb-pop-item" onclick="closeAllSbPopovers(); toggleSidebarRail();">
+            <span class="sb-pop-left"><span class="pop-dot" style="background:#891c2e;"></span>Recolher Menu Lateral</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sb-search" onclick="expandSidebarAndSearch()" title="Buscar placa ou câmera...">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="sbSearchInput" placeholder="Buscar placa ou câmera..." oninput="onSbSearch(this.value)" />
+    </div>
+
+    <a class="nav-item" href="/" data-tip="Dashboard">
+      <span class="sb-ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.8"/><rect x="14" y="3" width="7" height="7" rx="1.8"/><rect x="14" y="14" width="7" height="7" rx="1.8"/><rect x="3" y="14" width="7" height="7" rx="1.8"/></svg>
+      </span>
+      <span class="sb-label">Dashboard</span>
+    </a>
+
+    <a class="nav-item" href="/#equipamentos" data-tip="Equipamentos / Câmeras">
+      <span class="sb-ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3.5"/></svg>
+      </span>
+      <span class="sb-label">Equipamentos</span>
+      <span class="sb-badge green" id="sbOnlineBadge">0</span>
+    </a>
+
+    <a class="nav-item" href="/veiculos" data-tip="Busca de Veículos (Cor / Modelo)">
+      <span class="sb-ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
+      </span>
+      <span class="sb-label">Busca de Veículos</span>
+    </a>
+
+    <div class="nav-row">
+      <button class="nav-item active" id="navAll" onclick="setQuickFilter('all')" data-tip="Galeria de Placas (Todas)" style="padding-right:38px;">
+        <span class="sb-ico">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        </span>
+        <span class="sb-label">Galeria de Placas</span>
+        <span class="sb-badge" id="sbTotalPlatesBadge">0</span>
+      </button>
+      <button type="button" class="sb-plus" onclick="toggleSbPopover(event, 'sbGalleryPop')" title="Ações da galeria">+</button>
+      <div class="sb-popover" id="sbGalleryPop">
+        <button type="button" class="sb-pop-item" onclick="closeAllSbPopovers(); captureNow();">
+          <span class="sb-pop-left"><span class="pop-dot" style="background:#2563eb;"></span>Capturar Agora (Online)</span>
+        </button>
+        <button type="button" class="sb-pop-item" onclick="closeAllSbPopovers(); setQuickFilter('plates');">
+          <span class="sb-pop-left"><span class="pop-dot" style="background:#ec4899;"></span>Somente Placas BR</span>
+        </button>
+        <button type="button" class="sb-pop-item" onclick="closeAllSbPopovers(); exportCSV();">
+          <span class="sb-pop-left"><span class="pop-dot" style="background:#94a3b8;"></span>Exportar Relatório CSV</span>
+          <span style="opacity:0.6;">›</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="nav-group" id="sbGroupFilters">
+      <div class="nav-group-head" onclick="toggleSbGroup('sbGroupFilters')">
+        <span class="nav-group-left">
+          <svg class="group-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          Recortes Rápidos
+        </span>
+      </div>
+      <div class="nav-group-body">
+        <button class="nav-item" id="navPlates" onclick="setQuickFilter('plates')" data-tip="Placas Mercosul / BR">
+          <span class="sb-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </span>
+          <span class="sb-label">Placas Validadas BR</span>
+          <span class="sb-badge soft" id="sbValidPlatesBadge">0</span>
+        </button>
+        <button class="nav-item" id="navToday" onclick="setQuickFilter('today')" data-tip="Registros de Hoje">
+          <span class="sb-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </span>
+          <span class="sb-label">Registros de Hoje</span>
+          <span class="sb-badge soft" id="sbTodayBadge">0</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="nav-group" id="sbGroupOps">
+      <div class="nav-group-head" onclick="toggleSbGroup('sbGroupOps')">
+        <span class="nav-group-left">
+          <svg class="group-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          Operação & IA
+        </span>
+      </div>
+      <div class="nav-group-body">
+        <a class="nav-item" href="/?action=scanner" data-tip="Scanner de Rede">
+          <span class="sb-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/><line x1="12" y1="3" x2="12" y2="12"/></svg>
+          </span>
+          <span class="sb-label">Scanner de Rede</span>
+        </a>
+        <a class="nav-item" href="/?action=ocr" data-tip="Módulo OCR / LPR">
+          <span class="sb-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/></svg>
+          </span>
+          <span class="sb-label">Módulo OCR / LPR</span>
+        </a>
+        <a class="nav-item" href="/?action=multiview" data-tip="Multi-View Tela Cheia">
+          <span class="sb-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+          </span>
+          <span class="sb-label">Multi-View</span>
+        </a>
+        <a class="nav-item" href="/?action=settings" data-tip="Configurações">
+          <span class="sb-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </span>
+          <span class="sb-label">Configurações</span>
+        </a>
+        <button class="nav-item" onclick="exportCSV()" data-tip="Exportar CSV">
+          <span class="sb-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </span>
+          <span class="sb-label">Exportar CSV</span>
+        </button>
+        <button class="nav-item" onclick="toggleTheme()" data-tip="Alternar Tema">
+          <span class="sb-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </span>
+          <span class="sb-label">Tema Claro / Escuro</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="sb-status-pill" title="Cena + Área da Placa + Original em disco">
+        <span class="sb-status-dot"></span>
+        <span>3 imagens por placa</span>
+      </div>
+      <button type="button" class="sb-collapse-btn" onclick="toggleSidebarRail()" title="Recolher / Expandir menu lateral">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="main-panel">
+    <div class="topbar">
+      <div class="page-heading">
+        <h1>BRASCONTROL SMART CAM — GALERIA DE PLACAS</h1>
+        <p id="subStatus">Monitoramento contínuo: ativo · gravação automática da cena demarcada e do recorte da área da placa</p>
+      </div>
+      <div class="top-actions">
+        <select id="captureCamSelect" style="padding:8px 10px;border-radius:9px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-main);font-size:12.5px;">
+          <option value="all">Todas as câmeras online</option>
+        </select>
+        <button class="btn btn-primary" id="btnCaptureNow" onclick="captureNow()">
+          Capturar Placas Agora
+        </button>
+        <a class="btn" href="/veiculos">Busca por Cor / Modelo</a>
+        <a class="btn" href="/">Painel de Câmeras</a>
+      </div>
+    </div>
+
+    <section class="kpi-grid">
+      <div class="kpi-card kpi-green">
+        <div class="kpi-label">Câmeras Online</div>
+        <div class="kpi-val" id="kpiOnline">0</div>
+      </div>
+      <div class="kpi-card kpi-brand">
+        <div class="kpi-label">Placas Validadas</div>
+        <div class="kpi-val" id="kpiValidPlates">0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total na Galeria</div>
+        <div class="kpi-val" id="kpiTotal">0</div>
+      </div>
+      <div class="kpi-card kpi-amber">
+        <div class="kpi-label">Registros Hoje</div>
+        <div class="kpi-val" id="kpiToday">0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Confiança Média</div>
+        <div class="kpi-val" id="kpiConf">0%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Motor OCR Ativo</div>
+        <div class="kpi-val" id="kpiEngine" style="font-size:19px;text-transform:uppercase;padding-top:5px;">RAPIDOCR</div>
+      </div>
+    </section>
+
+    <section class="filter-bar">
+      <input type="text" id="filterQ" placeholder="Buscar por placa (ex: FFT5292), texto ou câmera..." oninput="debouncedLoad()" />
+      <select id="filterCam" onchange="loadGallery()">
+        <option value="">Todas as Câmeras</option>
+      </select>
+      <select id="filterDate" onchange="loadGallery()">
+        <option value="">Todas as Datas</option>
+      </select>
+      <label class="chk-label">
+        <input type="checkbox" id="filterOnlyPlates" onchange="loadGallery()" />
+        Somente Placas (ABC1D23 / ABC1234)
+      </label>
+      <label class="chk-label">
+        <input type="checkbox" id="autoRefreshChk" checked />
+        Auto-atualizar (5s)
+      </label>
+      <button class="btn" onclick="loadGallery()">Atualizar</button>
+    </section>
+
+    <div class="status-strip">
+      <span id="showingCount">Carregando registros...</span>
+      <span id="lastSyncTime"></span>
+    </div>
+
+    <section id="galleryContainer" class="gallery-grid"></section>
+    </div>
+  </main>
+
+  <!-- Lightbox Modal -->
+  <div class="modal-backdrop" id="lightboxModal" onclick="if(event.target===this) closeModal()">
+    <div class="modal-box">
+      <div class="modal-head">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <strong id="modalTitle" style="font-size:16px;">Inspeção de Captura</strong>
+          <button class="mini-btn" id="btnToggleClean" onclick="toggleCleanScene()">Ver Imagem Sem Marcação</button>
+        </div>
+        <button class="btn" onclick="closeModal()">Fechar ✕</button>
+      </div>
+      <div class="modal-body">
+        <div>
+          <img id="modalSceneImg" class="modal-scene-img" src="" alt="Cena com placa" />
+        </div>
+        <div class="modal-side">
+          <div class="modal-area-box">
+            <div style="color:#9ca3af;font-size:11px;font-weight:700;text-transform:uppercase;margin-bottom:8px;">
+              Recorte Isolado da Área da Placa
+            </div>
+            <img id="modalAreaImg" src="" alt="Recorte da área da placa" />
+            <div id="modalPlateBadgeWrap" style="margin-top:12px;"></div>
+          </div>
+
+          <div class="detail-list" id="modalDetails"></div>
+
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <a id="dlSceneBtn" class="btn btn-primary" href="#" download style="flex:1;justify-content:center;">Baixar Cena Demarcada</a>
+            <a id="dlAreaBtn" class="btn" href="#" download style="flex:1;justify-content:center;">Baixar Área da Placa</a>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <a id="dlCleanBtn" class="mini-btn" href="#" download style="flex:1;text-align:center;padding:8px;">Baixar Cena Original Limpa</a>
+            <button class="mini-btn" style="color:#dc2626;border-color:#fca5a5;padding:8px 12px;" onclick="deleteCurrentItem()">Excluir</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let galleryItems = [];
+    let currentModalItem = null;
+    let showingClean = false;
+    let debounceTimer = null;
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark");
+      localStorage.setItem("brascontrol_theme", document.body.classList.contains("dark") ? "dark" : "light");
+    }
+    if (localStorage.getItem("brascontrol_theme") === "dark") {
+      document.body.classList.add("dark");
+    }
+
+    function debouncedLoad() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(loadGallery, 250);
+    }
+
+    function setQuickFilter(mode) {
+      document.querySelectorAll(".sidebar .nav-item").forEach(b => b.classList.remove("active"));
+      if (mode === "plates") {
+        document.getElementById("navPlates").classList.add("active");
+        document.getElementById("filterOnlyPlates").checked = true;
+        document.getElementById("filterDate").value = "";
+      } else if (mode === "today") {
+        document.getElementById("navToday").classList.add("active");
+        document.getElementById("filterOnlyPlates").checked = false;
+        const today = new Date().toISOString().slice(0, 10);
+        const sel = document.getElementById("filterDate");
+        if ([...sel.options].some(o => o.value === today)) sel.value = today;
+      } else {
+        document.getElementById("navAll").classList.add("active");
+        document.getElementById("filterOnlyPlates").checked = false;
+        document.getElementById("filterDate").value = "";
+      }
+      loadGallery();
+    }
+
+    function renderPlateBadge(item) {
+      if (item.plate) {
+        return `<div class="mercosul-plate">
+          <div class="mercosul-top">BRASIL</div>
+          <div class="mercosul-code">${escapeHtml(item.plate)}</div>
+        </div>`;
+      }
+      return `<div class="ocr-generic-badge">${escapeHtml(item.text || "---")}</div>`;
+    }
+
+    function escapeHtml(s) {
+      return String(s || "").replace(/[&<>"']/g, c => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[c]));
+    }
+
+    async function loadGallery() {
+      try {
+        const q = encodeURIComponent(document.getElementById("filterQ").value.trim());
+        const cam = encodeURIComponent(document.getElementById("filterCam").value);
+        const date = encodeURIComponent(document.getElementById("filterDate").value);
+        const onlyPlates = document.getElementById("filterOnlyPlates").checked ? "1" : "0";
+
+        const resp = await fetch(`/api/plate_gallery?q=${q}&cam=${cam}&date=${date}&only_plates=${onlyPlates}&limit=250`);
+        const data = await resp.json();
+        galleryItems = data.items || [];
+
+        const st = data.stats || {};
+        document.getElementById("kpiOnline").textContent = `${st.cameras_online ?? 0}/${st.cameras_total ?? 0}`;
+        document.getElementById("kpiValidPlates").textContent = st.valid_plates ?? 0;
+        document.getElementById("kpiTotal").textContent = st.total ?? 0;
+        document.getElementById("kpiToday").textContent = st.today ?? 0;
+        document.getElementById("kpiConf").textContent = `${st.avg_conf ?? 0}%`;
+        document.getElementById("kpiEngine").textContent = st.active_engine || "rapidocr";
+        const sbOn = document.getElementById("sbOnlineBadge");
+        if (sbOn) sbOn.textContent = st.cameras_online ?? 0;
+        const sbTot = document.getElementById("sbTotalPlatesBadge");
+        if (sbTot) sbTot.textContent = st.total ?? 0;
+        const sbVal = document.getElementById("sbValidPlatesBadge");
+        if (sbVal) sbVal.textContent = st.valid_plates ?? 0;
+        const sbTod = document.getElementById("sbTodayBadge");
+        if (sbTod) sbTod.textContent = st.today ?? 0;
+
+        populateSelect("filterCam", data.cameras || [], "Todas as Câmeras");
+        populateSelect("captureCamSelect", data.cameras || [], "Todas as câmeras online", "all");
+        populateSelect("filterDate", data.dates || [], "Todas as Datas");
+
+        document.getElementById("showingCount").textContent =
+          `Exibindo ${galleryItems.length} captura(s) salva(s) com imagem da cena + recorte da área da placa`;
+        document.getElementById("lastSyncTime").textContent =
+          `Última atualização: ${new Date().toLocaleTimeString("pt-BR")}`;
+
+        renderGrid();
+      } catch (err) {
+        console.error("Erro ao carregar galeria:", err);
+      }
+    }
+
+    function populateSelect(id, values, defaultLabel, defaultVal = "") {
+      const sel = document.getElementById(id);
+      const prev = sel.value;
+      const opts = [`<option value="${defaultVal}">${defaultLabel}</option>`];
+      for (const v of values) {
+        opts.push(`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`);
+      }
+      sel.innerHTML = opts.join("");
+      if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById("galleryContainer");
+      if (!galleryItems.length) {
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+          <h3 style="margin-bottom:8px;color:var(--text-main);">Nenhuma captura encontrada para este filtro</h3>
+          <p style="margin-bottom:16px;">Assim que um veículo passar pelas câmeras ou você clicar em <strong>Capturar Placas Agora</strong>, a imagem completa demarcada e o recorte da área da placa aparecerão aqui.</p>
+          <button class="btn btn-primary" onclick="captureNow()">Capturar Placas Agora nas Câmeras Online</button>
+        </div>`;
+        return;
+      }
+
+      grid.innerHTML = galleryItems.map((item, idx) => {
+        const confPct = Math.round((Number(item.conf) || 0) * 100);
+        const pbox = Array.isArray(item.plate_box) ? `[${item.plate_box.join(", ")}]` : "";
+        return `<article class="plate-card">
+          <div class="card-header">
+            ${renderPlateBadge(item)}
+            <div class="badges-right">
+              <span class="pill pill-conf">${confPct}% conf</span>
+              <span class="pill pill-eng">${escapeHtml(item.engine || "ocr")}</span>
+            </div>
+          </div>
+
+          <div class="dual-images" onclick="openModal(${idx})">
+            <div class="img-pane" title="Clique para ampliar a imagem completa com a placa demarcada">
+              <div class="pane-tag">
+                <span>Imagem com a Placa</span>
+                <span class="accent">${escapeHtml(item.scene_res || "")}</span>
+              </div>
+              <img class="scene-thumb" loading="lazy" src="${escapeHtml(item.scene_url)}" alt="Cena com placa" />
+            </div>
+
+            <div class="img-pane" title="Clique para inspecionar o recorte isolado da área da placa">
+              <div class="pane-tag">
+                <span>Área da Placa</span>
+                <span class="accent">ZOOM</span>
+              </div>
+              <div class="area-wrap">
+                <img class="area-thumb" loading="lazy" src="${escapeHtml(item.area_url)}" alt="Área da placa" />
+                <div class="area-coords">${escapeHtml(pbox)}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <div class="meta-info">
+              <span class="meta-cam">${escapeHtml(item.cam_name)}</span>
+              <span class="meta-time">${escapeHtml(item.time || "")}</span>
+            </div>
+            <div class="card-links">
+              <a class="mini-btn" href="${escapeHtml(item.scene_url)}" download>Cena</a>
+              <a class="mini-btn" href="${escapeHtml(item.area_url)}" download>Placa</a>
+              <button class="mini-btn" onclick="openModal(${idx})">Ampliar</button>
+            </div>
+          </div>
+        </article>`;
+      }).join("");
+    }
+
+    async function captureNow() {
+      const btn = document.getElementById("btnCaptureNow");
+      const targetCam = document.getElementById("captureCamSelect").value || "all";
+      const origTxt = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = "Varrendo câmeras...";
+      try {
+        const resp = await fetch("/api/plate_capture_now", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cam: targetCam })
+        });
+        const res = await resp.json();
+        document.getElementById("subStatus").textContent =
+          `Varredura concluída: ${res.scanned || 0} câmera(s) analisada(s), ${res.captured_count || 0} nova(s) leitura(s) salva(s) na galeria.`;
+        await loadGallery();
+      } catch (e) {
+        alert("Erro ao capturar agora: " + e);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = origTxt;
+      }
+    }
+
+    function openModal(idx) {
+      const item = galleryItems[idx];
+      if (!item) return;
+      currentModalItem = item;
+      showingClean = false;
+      document.getElementById("modalTitle").textContent =
+        `${item.plate ? "Placa " + item.plate : "Leitura " + item.text} — ${item.cam_name}`;
+      document.getElementById("modalSceneImg").src = item.scene_url;
+      document.getElementById("btnToggleClean").textContent = "Ver Imagem Sem Marcação";
+      document.getElementById("modalAreaImg").src = item.area_url;
+      document.getElementById("modalPlateBadgeWrap").innerHTML = renderPlateBadge(item);
+
+      const confPct = ((Number(item.conf) || 0) * 100).toFixed(1) + "%";
+      const pbox = Array.isArray(item.plate_box) ? item.plate_box.join(", ") : "-";
+      document.getElementById("modalDetails").innerHTML = `
+        <div class="detail-row"><span>Câmera</span><span>${escapeHtml(item.cam_name)}</span></div>
+        <div class="detail-row"><span>Placa Normalizada</span><span>${escapeHtml(item.plate || "Não-padrão")}</span></div>
+        <div class="detail-row"><span>Texto Bruto OCR</span><span>${escapeHtml(item.raw_text || item.text)}</span></div>
+        <div class="detail-row"><span>Confiança</span><span>${confPct}</span></div>
+        <div class="detail-row"><span>Motor OCR</span><span>${escapeHtml(item.engine)}</span></div>
+        <div class="detail-row"><span>Data / Hora</span><span>${escapeHtml(item.time)}</span></div>
+        <div class="detail-row"><span>Coordenadas da Placa</span><span>[${pbox}]</span></div>
+        <div class="detail-row"><span>Resolução Cena / Recorte</span><span>${escapeHtml(item.scene_res)} / ${escapeHtml(item.area_res)}</span></div>
+      `;
+
+      document.getElementById("dlSceneBtn").href = item.scene_url;
+      document.getElementById("dlAreaBtn").href = item.area_url;
+      document.getElementById("dlCleanBtn").href = item.clean_url || item.scene_url;
+      document.getElementById("lightboxModal").classList.add("open");
+    }
+
+    function toggleCleanScene() {
+      if (!currentModalItem) return;
+      showingClean = !showingClean;
+      document.getElementById("modalSceneImg").src = showingClean
+        ? (currentModalItem.clean_url || currentModalItem.scene_url)
+        : currentModalItem.scene_url;
+      document.getElementById("btnToggleClean").textContent = showingClean
+        ? "Ver Imagem Com Demarcação"
+        : "Ver Imagem Sem Marcação";
+    }
+
+    function closeModal() {
+      document.getElementById("lightboxModal").classList.remove("open");
+      currentModalItem = null;
+    }
+
+    async function deleteCurrentItem() {
+      if (!currentModalItem || !currentModalItem.uid) return;
+      if (!confirm(`Excluir captura ${currentModalItem.text} (${currentModalItem.cam_name}) do disco e da galeria?`)) return;
+      await fetch("/api/plate_delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uid: currentModalItem.uid })
+      });
+      closeModal();
+      loadGallery();
+    }
+
+    function exportCSV() {
+      if (!galleryItems.length) {
+        alert("Nenhum item carregado para exportar.");
+        return;
+      }
+      const header = ["uid", "cam_name", "plate", "text", "conf", "engine", "time", "plate_box", "scene_url", "area_url"];
+      const rows = [header.join(";")];
+      for (const it of galleryItems) {
+        rows.push([
+          it.uid || "",
+          it.cam_name || "",
+          it.plate || "",
+          (it.text || "").replace(/;/g, ","),
+          it.conf || "",
+          it.engine || "",
+          it.time || "",
+          Array.isArray(it.plate_box) ? `[${it.plate_box.join(",")}]` : "",
+          location.origin + (it.scene_url || ""),
+          location.origin + (it.area_url || "")
+        ].join(";"));
+      }
+      const blob = new Blob(["\uFEFF" + rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `galeria_placas_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    }
+
+    function toggleSidebarRail() {
+      const sb = document.getElementById("bcSidebar");
+      if (!sb) return;
+      sb.classList.toggle("collapsed");
+      localStorage.setItem("bc_sidebar_collapsed", sb.classList.contains("collapsed") ? "1" : "0");
+    }
+    function expandSidebarAndSearch() {
+      const sb = document.getElementById("bcSidebar");
+      if (sb && sb.classList.contains("collapsed")) {
+        sb.classList.remove("collapsed");
+        localStorage.setItem("bc_sidebar_collapsed", "0");
+      }
+      const inp = document.getElementById("sbSearchInput");
+      if (inp) setTimeout(() => inp.focus(), 40);
+    }
+    function onSbSearch(val) {
+      const fq = document.getElementById("filterQ");
+      if (fq) {
+        fq.value = val;
+        debouncedLoad();
+      }
+    }
+    function toggleSbGroup(id) {
+      const g = document.getElementById(id);
+      if (g) g.classList.toggle("closed");
+    }
+    function closeAllSbPopovers() {
+      document.querySelectorAll(".sb-popover.open").forEach(el => el.classList.remove("open"));
+    }
+    function toggleSbPopover(ev, id) {
+      ev.stopPropagation();
+      const target = document.getElementById(id);
+      if (!target) return;
+      const wasOpen = target.classList.contains("open");
+      closeAllSbPopovers();
+      if (!wasOpen) target.classList.add("open");
+    }
+    document.addEventListener("click", () => closeAllSbPopovers());
+    if (localStorage.getItem("bc_sidebar_collapsed") === "1") {
+      const _sb = document.getElementById("bcSidebar");
+      if (_sb) _sb.classList.add("collapsed");
+    }
+
+    loadGallery();
+    setInterval(() => {
+      if (document.getElementById("autoRefreshChk").checked && !currentModalItem) {
+        loadGallery();
+      }
+    }, 5000);
+  </script>
+</body>
+</html>

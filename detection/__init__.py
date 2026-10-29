@@ -1,0 +1,1 @@
+# Clearcam detection package
