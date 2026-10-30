@@ -7,6 +7,8 @@
   <link rel="icon" type="image/png" href="/assets/favicon.png?v=2" />
   <style>
     :root {
+      --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+      --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
       --bg-page: #f5eff0;
       --bg-sidebar: #ffffff;
       --bg-panel: #ffffff;
@@ -67,6 +69,7 @@
       color: var(--text-main);
       display: flex;
       min-height: 100vh;
+      min-height: 100dvh;
     }
 
     /* Modern Collapsible Sidebar — Brascontrol Smart Cam (Concept UI) */
@@ -81,6 +84,7 @@
       position: sticky;
       top: 0;
       height: 100vh;
+      height: 100dvh;
       flex-shrink: 0;
       overflow-y: auto;
       overflow-x: visible;
@@ -305,7 +309,7 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease, transform 0.15s var(--ease-out);
       z-index: 3;
     }
     .sb-plus:hover { background: var(--brand); color: #fff; border-color: var(--brand); }
@@ -398,7 +402,7 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: all 0.16s ease;
+      transition: background-color 0.16s ease, color 0.16s ease, border-color 0.16s ease, opacity 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease, transform 0.16s var(--ease-out);
     }
     .sb-collapse-btn:hover { background: var(--brand-soft); color: var(--brand); border-color: var(--brand); }
     .sb-collapse-btn svg { width: 16px; height: 16px; transition: transform 0.22s ease; }
@@ -456,7 +460,7 @@
       border: 1px solid var(--border);
       background: var(--bg-card);
       color: var(--text-main);
-      transition: all 0.15s;
+      transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease, transform 0.15s var(--ease-out);
       text-decoration: none;
       display: inline-flex;
       align-items: center;
@@ -618,7 +622,7 @@
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.14s;
+      transition: background-color 0.14s ease, color 0.14s ease, border-color 0.14s ease, opacity 0.14s ease, filter 0.14s ease, box-shadow 0.14s ease, transform 0.14s var(--ease-out);
     }
     .color-chip:hover {
       border-color: var(--brand);
@@ -1024,6 +1028,37 @@
       text-transform: uppercase;
       color: var(--text-muted);
       background: var(--bg-subtle);
+    }
+
+    /* motion (emil-design-eng): press feedback, hover motion only with a real pointer, modal entry, reduced motion */
+    .btn, .btn-sm, .color-chip, .sb-icon-btn, .sb-plus, .sb-collapse-btn { -webkit-tap-highlight-color: transparent; }
+    .btn:not(:disabled):active, .btn-sm:not(:disabled):active, .color-chip:not(:disabled):active, .sb-icon-btn:not(:disabled):active, .sb-plus:not(:disabled):active, .sb-collapse-btn:not(:disabled):active {
+      transform: scale(0.97);
+    }
+    @media (hover: none), (pointer: coarse) {
+    .brand-logo:hover .brand-mark,
+    .sb-plus:hover,
+    .plate-crop-img:hover,
+    .scene-mini-img:hover { transform: none; }
+    }
+    @keyframes bc-fade-in { from { opacity: 0; } }
+    @keyframes bc-pop-in { from { opacity: 0; transform: scale(0.96); } }
+    .modal-backdrop.open { animation: bc-fade-in 180ms ease-out; }
+    .modal-backdrop.open .modal-box { animation: bc-pop-in 220ms var(--ease-out); }
+    @media (prefers-reduced-motion: reduce) {
+    .brand-logo:hover .brand-mark,
+    .sb-plus:hover,
+    .plate-crop-img:hover,
+    .scene-mini-img:hover { transform: none; }
+      .modal-backdrop.open .modal-box { animation-name: bc-fade-in; }
+    }
+
+    /* mobile (mobile-native): no tap flash, no font inflation, no tap delay, no input zoom on iOS */
+    html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    button, a, select, label, [role="button"], [onclick] { touch-action: manipulation; }
+    button, [role="button"] { -webkit-user-select: none; user-select: none; }
+    @media (pointer: coarse) {
+      input, select, textarea { font-size: 16px !important; } /* below 16px iOS zooms the page on focus */
     }
   </style>
 </head>
@@ -2103,6 +2138,16 @@
         runVehicleSearch();
       }
     }, 8000);
+  </script>
+  <script>
+    (() => {
+      const meta = document.createElement("meta");
+      meta.name = "theme-color";
+      document.head.appendChild(meta);
+      const sync = () => { meta.content = getComputedStyle(document.body).backgroundColor; };
+      sync();
+      new MutationObserver(sync).observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    })();
   </script>
 </body>
 </html>

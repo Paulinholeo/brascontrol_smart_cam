@@ -6,6 +6,28 @@ As tags `1.x.y` sem `v` são do projeto original.
 
 ## [Não lançado]
 
+### Interface
+- Animações seguem a skill `emil-design-eng`:
+  - transições com propriedades explícitas em vez de `all`;
+  - curvas `--ease-out` e `--ease-in-out`;
+  - botões reagem ao clique com `scale(0.97)`;
+  - efeitos de movimento no hover só com mouse;
+  - modais entram com fade e escala;
+  - suporte a `prefers-reduced-motion`.
+- Celular (skill `mobile-native`):
+  - sem flash ao tocar e sem atraso de toque;
+  - campos com 16px em tela de toque, para o iPhone não dar zoom;
+  - altura com `100dvh`;
+  - `theme-color` acompanha o tema claro/escuro.
+- Galeria de placas com dados extremos (skill `break-ui`):
+  - nome de câmera longo não faz mais a página rolar para o lado;
+  - o nome do motor OCR cabe no card;
+  - imagem apagada mostra "Imagem indisponível";
+  - contadores com separador de milhar;
+  - título do modal para leitura sem texto.
+- `test/ui_worst_case.js`: dados de pior caso para testar a galeria no navegador.
+- `.claude/skills`: skills de design de [emilkowalski/skills](https://github.com/emilkowalski/skills) (MIT).
+
 ## [0.2.0] - 2026-10-29
 
 ### Desempenho

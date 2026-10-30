@@ -7,6 +7,8 @@
   <link rel="icon" type="image/png" href="/assets/favicon.png?v=2" />
   <style>
     :root {
+      --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+      --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
       --bg-page: #f5eff0;
       --bg-sidebar: #ffffff;
       --bg-panel: #ffffff;
@@ -54,6 +56,7 @@
       color: var(--text-main);
       display: flex;
       min-height: 100vh;
+      min-height: 100dvh;
     }
 
     /* Modern Collapsible Sidebar (Concept UI) */
@@ -68,6 +71,7 @@
       position: sticky;
       top: 0;
       height: 100vh;
+      height: 100dvh;
       flex-shrink: 0;
       overflow-y: auto;
       overflow-x: visible;
@@ -288,7 +292,7 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease, transform 0.15s var(--ease-out);
       z-index: 3;
     }
     .sb-plus:hover { background: var(--brand); color: #fff; border-color: var(--brand); }
@@ -381,7 +385,7 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: all 0.16s ease;
+      transition: background-color 0.16s ease, color 0.16s ease, border-color 0.16s ease, opacity 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease, transform 0.16s var(--ease-out);
     }
     .sb-collapse-btn:hover { background: var(--brand-soft); color: var(--brand); border-color: var(--brand); }
     .sb-collapse-btn svg { width: 16px; height: 16px; transition: transform 0.22s ease; }
@@ -436,7 +440,7 @@
       border: 1px solid var(--border);
       background: var(--bg-card);
       color: var(--text-main);
-      transition: all 0.15s;
+      transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease, transform 0.15s var(--ease-out);
       text-decoration: none;
       display: inline-flex;
       align-items: center;
@@ -820,6 +824,48 @@
     }
     .detail-row span:first-child { color: var(--text-muted); font-weight: 600; }
     .detail-row span:last-child { font-weight: 700; font-family: monospace; }
+
+    /* worst-case data (break-ui): long camera names, long engine labels, deleted images */
+    .top-actions, .top-actions > *, .badges-right, .meta-info { min-width: 0; }
+    .meta-cam { overflow-wrap: anywhere; }
+    select { max-width: 100%; text-overflow: ellipsis; }
+    .card-header > :first-child { flex-shrink: 0; }
+    .pill-eng { max-width: 16ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .kpi-val-text { overflow-wrap: anywhere; line-height: 1.2; }
+    .img-missing {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; min-height: 120px; flex: 1;
+      font-size: 12px; color: var(--text-muted); text-align: center;
+    }
+
+    /* motion (emil-design-eng): press feedback, hover motion only with a real pointer, modal entry, reduced motion */
+    .btn, .mini-btn, .sb-icon-btn, .sb-plus, .sb-collapse-btn { -webkit-tap-highlight-color: transparent; }
+    .btn:not(:disabled):active, .mini-btn:not(:disabled):active, .sb-icon-btn:not(:disabled):active, .sb-plus:not(:disabled):active, .sb-collapse-btn:not(:disabled):active {
+      transform: scale(0.97);
+    }
+    @media (hover: none), (pointer: coarse) {
+    .brand-logo:hover .brand-mark,
+    .sb-plus:hover,
+    .plate-card:hover { transform: none; }
+    }
+    @keyframes bc-fade-in { from { opacity: 0; } }
+    @keyframes bc-pop-in { from { opacity: 0; transform: scale(0.96); } }
+    .modal-backdrop.open { animation: bc-fade-in 180ms ease-out; }
+    .modal-backdrop.open .modal-box { animation: bc-pop-in 220ms var(--ease-out); }
+    @media (prefers-reduced-motion: reduce) {
+    .brand-logo:hover .brand-mark,
+    .sb-plus:hover,
+    .plate-card:hover { transform: none; }
+      .modal-backdrop.open .modal-box { animation-name: bc-fade-in; }
+    }
+
+    /* mobile (mobile-native): no tap flash, no font inflation, no tap delay, no input zoom on iOS */
+    html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    button, a, select, label, [role="button"], [onclick] { touch-action: manipulation; }
+    button, [role="button"] { -webkit-user-select: none; user-select: none; }
+    @media (pointer: coarse) {
+      input, select, textarea { font-size: 16px !important; } /* below 16px iOS zooms the page on focus */
+    }
   </style>
 </head>
 <body>
@@ -1028,7 +1074,7 @@
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Motor OCR Ativo</div>
-        <div class="kpi-val" id="kpiEngine" style="font-size:19px;text-transform:uppercase;padding-top:5px;">RAPIDOCR</div>
+        <div class="kpi-val kpi-val-text" id="kpiEngine" style="font-size:19px;text-transform:uppercase;padding-top:5px;">RAPIDOCR</div>
       </div>
     </section>
 
@@ -1147,6 +1193,17 @@
       return `<div class="ocr-generic-badge">${escapeHtml(item.text || "---")}</div>`;
     }
 
+    function imgMissing(img) {
+      const box = document.createElement("div");
+      box.className = "img-missing";
+      box.textContent = "Imagem indisponível";
+      img.replaceWith(box);
+    }
+
+    function fmtInt(n) {
+      return (Number(n) || 0).toLocaleString("pt-BR");
+    }
+
     function escapeHtml(s) {
       return String(s || "").replace(/[&<>"']/g, c => ({
         "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
@@ -1165,20 +1222,20 @@
         galleryItems = data.items || [];
 
         const st = data.stats || {};
-        document.getElementById("kpiOnline").textContent = `${st.cameras_online ?? 0}/${st.cameras_total ?? 0}`;
-        document.getElementById("kpiValidPlates").textContent = st.valid_plates ?? 0;
-        document.getElementById("kpiTotal").textContent = st.total ?? 0;
-        document.getElementById("kpiToday").textContent = st.today ?? 0;
-        document.getElementById("kpiConf").textContent = `${st.avg_conf ?? 0}%`;
+        document.getElementById("kpiOnline").textContent = `${fmtInt(st.cameras_online)}/${fmtInt(st.cameras_total)}`;
+        document.getElementById("kpiValidPlates").textContent = fmtInt(st.valid_plates);
+        document.getElementById("kpiTotal").textContent = fmtInt(st.total);
+        document.getElementById("kpiToday").textContent = fmtInt(st.today);
+        document.getElementById("kpiConf").textContent = `${(Number(st.avg_conf) || 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
         document.getElementById("kpiEngine").textContent = st.active_engine || "rapidocr";
         const sbOn = document.getElementById("sbOnlineBadge");
-        if (sbOn) sbOn.textContent = st.cameras_online ?? 0;
+        if (sbOn) sbOn.textContent = fmtInt(st.cameras_online);
         const sbTot = document.getElementById("sbTotalPlatesBadge");
-        if (sbTot) sbTot.textContent = st.total ?? 0;
+        if (sbTot) sbTot.textContent = fmtInt(st.total);
         const sbVal = document.getElementById("sbValidPlatesBadge");
-        if (sbVal) sbVal.textContent = st.valid_plates ?? 0;
+        if (sbVal) sbVal.textContent = fmtInt(st.valid_plates);
         const sbTod = document.getElementById("sbTodayBadge");
-        if (sbTod) sbTod.textContent = st.today ?? 0;
+        if (sbTod) sbTod.textContent = fmtInt(st.today);
 
         populateSelect("filterCam", data.cameras || [], "Todas as Câmeras");
         populateSelect("captureCamSelect", data.cameras || [], "Todas as câmeras online", "all");
@@ -1225,7 +1282,7 @@
             ${renderPlateBadge(item)}
             <div class="badges-right">
               <span class="pill pill-conf">${confPct}% conf</span>
-              <span class="pill pill-eng">${escapeHtml(item.engine || "ocr")}</span>
+              <span class="pill pill-eng" title="${escapeHtml(item.engine || "ocr")}">${escapeHtml(item.engine || "ocr")}</span>
             </div>
           </div>
 
@@ -1235,7 +1292,7 @@
                 <span>Imagem com a Placa</span>
                 <span class="accent">${escapeHtml(item.scene_res || "")}</span>
               </div>
-              <img class="scene-thumb" loading="lazy" src="${escapeHtml(item.scene_url)}" alt="Cena com placa" />
+              <img class="scene-thumb" loading="lazy" src="${escapeHtml(item.scene_url)}" alt="Cena com placa" onerror="imgMissing(this)" />
             </div>
 
             <div class="img-pane" title="Clique para inspecionar o recorte isolado da área da placa">
@@ -1244,7 +1301,7 @@
                 <span class="accent">ZOOM</span>
               </div>
               <div class="area-wrap">
-                <img class="area-thumb" loading="lazy" src="${escapeHtml(item.area_url)}" alt="Área da placa" />
+                <img class="area-thumb" loading="lazy" src="${escapeHtml(item.area_url)}" alt="Área da placa" onerror="imgMissing(this)" />
                 <div class="area-coords">${escapeHtml(pbox)}</div>
               </div>
             </div>
@@ -1295,7 +1352,7 @@
       currentModalItem = item;
       showingClean = false;
       document.getElementById("modalTitle").textContent =
-        `${item.plate ? "Placa " + item.plate : "Leitura " + item.text} — ${item.cam_name}`;
+        `${item.plate ? "Placa " + item.plate : item.text ? "Leitura " + item.text : "Leitura sem texto"} — ${item.cam_name}`;
       document.getElementById("modalSceneImg").src = item.scene_url;
       document.getElementById("btnToggleClean").textContent = "Ver Imagem Sem Marcação";
       document.getElementById("modalAreaImg").src = item.area_url;
@@ -1425,6 +1482,16 @@
         loadGallery();
       }
     }, 5000);
+  </script>
+  <script>
+    (() => {
+      const meta = document.createElement("meta");
+      meta.name = "theme-color";
+      document.head.appendChild(meta);
+      const sync = () => { meta.content = getComputedStyle(document.body).backgroundColor; };
+      sync();
+      new MutationObserver(sync).observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    })();
   </script>
 </body>
 </html>
