@@ -189,23 +189,33 @@ class PumatronixClient:
         path = f"/api/mjpegvideo.cgi?Quality={q}&Resolution={resolution}&FrameRate={int(framerate)}"
         req = self._make_request(path)
         with urllib.request.urlopen(req, timeout=self.timeout) as resp:
+            read = resp.read1 if hasattr(resp, "read1") else resp.read  # read1 returns what is available instead of waiting for a full chunk
             buf = bytearray()
+            start, scan = -1, 0  # start of the current JPEG; bytes before scan were already searched for its end marker
             while True:
-                chunk = resp.read(8192)
+                chunk = read(65536)
                 if not chunk:
                     break
                 buf.extend(chunk)
-                start = buf.find(b"\xff\xd8")
-                if start != -1:
-                    end = buf.find(b"\xff\xd9", start + 2)
-                    if end != -1:
-                        jpg_bytes = bytes(buf[start : end + 2])
-                        del buf[: end + 2]
-                        frame = cv2.imdecode(np.frombuffer(jpg_bytes, dtype=np.uint8), cv2.IMREAD_COLOR)
-                        if frame is not None:
-                            yield frame
-                elif len(buf) > 2 * 1024 * 1024:
-                    buf.clear()
+                while True:
+                    if start == -1:
+                        start = buf.find(b"\xff\xd8")
+                        if start == -1:
+                            del buf[:-1]  # keep a trailing 0xff that may begin the next marker
+                            break
+                        scan = start + 2
+                    end = buf.find(b"\xff\xd9", scan)
+                    if end == -1:
+                        scan = max(start + 2, len(buf) - 1)
+                        if len(buf) - start > 8 * 1024 * 1024:  # no end marker in 8 MB: resync
+                            buf.clear()
+                            start = -1
+                        break
+                    frame = cv2.imdecode(np.frombuffer(buf, dtype=np.uint8, count=end + 2 - start, offset=start), cv2.IMREAD_COLOR)
+                    del buf[: end + 2]
+                    start = -1
+                    if frame is not None:
+                        yield frame
 
 
 class PumatronixWatchdogManager:

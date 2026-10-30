@@ -72,6 +72,27 @@ ocr_by_image = {}
 vehicle_analyzer = VehicleAttributeAnalyzer()
 _main_loop_ready = False
 
+_PROFILE = _os.environ.get("CLEARCAM_PROFILE") == "1"
+
+class LoopProfiler:
+  # CLEARCAM_PROFILE=1: prints main-loop time per stage every 10 s
+  def __init__(self, every=10.0):
+    self.every, self.t, self.n, self.acc = every, time.time(), 0, defaultdict(float)
+    self.frame_counts, self.prev_counts = None, {} # frame_counts: dict cam -> frames captured so far
+  def add(self, **stages):
+    for k, v in stages.items(): self.acc[k] += v
+    self.n += 1
+    if (dt := time.time() - self.t) >= self.every:
+      ms = " ".join(f"{k}={v / self.n * 1000:.1f}ms" for k, v in self.acc.items() if k != "frames")
+      print(f"\n[profile] {self.n / dt:.1f} loops/s, {self.acc['frames'] / dt:.1f} frames/s, per loop: {ms}", flush=True)
+      if self.frame_counts is not None:
+        counts = dict(self.frame_counts)
+        print("[profile] capture fps: " + " ".join(f"{c}={(n - self.prev_counts.get(c, n)) / dt:.1f}" for c, n in counts.items()), flush=True)
+        self.prev_counts = counts
+      self.t, self.n, self.acc = time.time(), 0, defaultdict(float)
+
+loop_prof = LoopProfiler()
+
 class RollingClassCounter:
   def __init__(self, window_seconds=None, max=None, classes=None, sched=[[0,86399],True,True,True,True,True,True,True],cam_name=None, desc=None, threshold=0.28):
     self.window = window_seconds
@@ -264,6 +285,7 @@ class VideoCapture:
     self.live_link = {}
     self.live_link_lock = {}
     self.last_ocr_ts = {}
+    self.active_links = set() # camera names in the links table, refreshed by the main loop every 5 s
 
   def _kill_procs(self, cam_name):
     for store in (self.proc, self.hls_proc):
@@ -282,6 +304,7 @@ class VideoCapture:
 
   def init_cam(self, cam_name, src):
     self.counter[cam_name] = RollingClassCounter(cam_name=cam_name, window_seconds=float('inf'))
+    self.active_links.add(cam_name)
     self.src[cam_name] = src
     self.resolved_src[cam_name] = None
     self.mode[cam_name] = "init"
@@ -342,6 +365,7 @@ class VideoCapture:
         threading.Thread(target=self.frame_loop, args=(cam_name,), daemon=True).start()
     global _main_loop_ready
     _main_loop_ready = True
+    loop_prof.frame_counts = self.frame_num
     while True:
       if time.time() - cam_check >= 5:
         cam_check = time.time()
@@ -366,11 +390,24 @@ class VideoCapture:
             puma_watchdog.stop(removed)
             cam_runtime_status.pop(removed, None)
         cams = new_cams
+        self.active_links = set(cams.keys())
+      pending = []
+      t0 = time.perf_counter()
       for cam_name in list(cams.keys()):
         if cam_name not in self.vod: continue
-        if self.vod[cam_name]: self.process_frame_vod(cam_name=cam_name) 
+        if self.vod[cam_name]: self.process_frame_vod(cam_name=cam_name)
+        elif (frame := self.live_frame_for_inference(cam_name)) is not None: pending.append((cam_name, frame))
         else: self.process_frame(cam_name=cam_name)
+      t1 = time.perf_counter()
+      if pending: # one batched detector call for every live camera with a new frame
+        all_dets = model.detect_batch([f for _, f in pending])
+        t2 = time.perf_counter()
+        for (cam_name, frame), dets in zip(pending, all_dets):
+          self.process_frame(cam_name=cam_name, frame=frame, dets=dets)
+      else: t2 = t1
+      t3 = time.perf_counter()
       process_queue()
+      t4 = time.perf_counter()
       if len(object_queue) > 0:
         try:
           img = cv2.imread(str(object_queue[0]))
@@ -380,6 +417,8 @@ class VideoCapture:
             process_latest_face(img)
         except Exception as e: print("error in object processing", object_queue[0], e)
         del object_queue[0]
+      t5 = time.perf_counter()
+      if _PROFILE: loop_prof.add(gather=t1-t0, detect=t2-t1, track_post=t3-t2, queue=t4-t3, objects=t5-t4, frames=len(pending))
       time.sleep(0.005)
 
   def _get_new_stream_dir(self, cam_name):
@@ -592,7 +631,7 @@ class VideoCapture:
   def frame_loop(self, cam_name):
     fail_count = 0
     while (BASE_DIR / "cameras" / cam_name).exists() or cam_name in self.src:
-      if cam_name not in database.run_get("links", None):
+      if cam_name not in self.active_links:
         break
       mode = self.mode.get(cam_name, "ffmpeg")
       try:
@@ -613,7 +652,7 @@ class VideoCapture:
               resolution=str(cfg["resolution"]),
               framerate=fps,
           ):
-            if self.src.get(cam_name) != src or cam_name not in database.run_get("links", None):
+            if self.src.get(cam_name) != src or cam_name not in self.active_links:
               break
             if frame.shape[1] != W or frame.shape[0] != H:
               frame = cv2.resize(frame, (W, H))
@@ -624,7 +663,7 @@ class VideoCapture:
             hp = self.hls_proc.get(cam_name)
             if hp and hp.stdin and hp.poll() is None:
               try:
-                hp.stdin.write(frame.tobytes())
+                hp.stdin.write(np.ascontiguousarray(frame).data) # no 2.7 MB copy per frame
               except Exception:
                 pass
           time.sleep(2.0)
@@ -697,7 +736,7 @@ class VideoCapture:
     self.cap[cam_name].grab()  # skip for max fps
     ret, frame = self.cap[cam_name].read()
     self.last_frames[cam_name].append(frame)
-    if not ret or cam_name not in database.run_get("links", None):
+    if not ret or cam_name not in self.active_links:
       self.running[cam_name] = False
       if "Processing" not in database.run_get("analysis_prog", cam_name): database.run_put("analysis_prog", cam_name, {"Tracking":100}) # todo stop when done?
     else:
@@ -705,19 +744,26 @@ class VideoCapture:
       database.run_put("analysis_prog", cam_name, {"Tracking":self.cap[cam_name].get(cv2.CAP_PROP_POS_FRAMES)/self.cap[cam_name].get(cv2.CAP_PROP_FRAME_COUNT)*100})
 
 
-  def process_frame(self, cam_name):
+  def live_frame_for_inference(self, cam_name):
+    # newest live frame if process_frame would run inference on it now, else None
+    if self.raw_frame[cam_name] is None or self.frame_num[cam_name] == self.last_frame_num[cam_name]: return None
+    if not any(counter.is_active() for _, counter in self.alert_counters[cam_name].items()): return None
+    if global_settings.use_notifs() and not alerts_on[cam_name]: return None
+    return self.raw_frame[cam_name].copy()
+
+  def process_frame(self, cam_name, frame=None, dets=None):
     frame_num = self.frame_num[cam_name]
     last_frame_num = self.last_frame_num[cam_name]
     if self.raw_frame[cam_name] is None: return
-    frame = self.raw_frame[cam_name].copy()
     if frame_num == last_frame_num: return
+    if frame is None: frame = self.raw_frame[cam_name].copy()
 
     # don't run inference when no active scheds
     if not any(counter.is_active() for _, counter in self.alert_counters[cam_name].items()): self.last_preds[cam_name] = [] # to remove annotation when no alerts active
     else:
       if not global_settings.use_notifs() or alerts_on[cam_name]:
-        preds, frame = self.run_inference(frame, cam_name=cam_name)
-        self.last_frames[cam_name].append(frame.numpy().copy())
+        self.last_frames[cam_name].append(frame) # before run_inference so save_object crops this frame, not the previous one
+        preds, frame = self.run_inference(frame, cam_name=cam_name, dets=dets)
         self.last_preds[cam_name] = preds.copy()
         self.last_frame_num[cam_name] = self.frame_num[cam_name]
 
@@ -842,10 +888,9 @@ class VideoCapture:
     shutil.rmtree(BASE_DIR / "cameras" / cam_name / "faces", ignore_errors=True)
     shutil.rmtree(BASE_DIR / "cameras" / cam_name / "event_images", ignore_errors=True)
 
-  def run_inference(self, frame, cam_name):
+  def run_inference(self, frame, cam_name, dets=None):
     global model
-    frame = Tensor(frame)
-    preds = jit_infer(model, frame, yolo_jit_cache).numpy()
+    preds = dets if dets is not None else jit_infer(model, Tensor(frame), yolo_jit_cache).numpy()
     thresh = (self.settings[cam_name].get("threshold") if self.settings[cam_name] else 0.5) or 0.5 #todo clean!
     online_targets = self.tracker[cam_name].update(preds, thresh)
     online_targets = [p for p in online_targets if (classes is None or str(int(p.class_id)) in classes)]
@@ -3017,6 +3062,9 @@ if __name__ == "__main__":
   alerts_on = {}
   qwen = None
   multiprocessing.set_start_method("spawn", force=True)
+  # tinygrad releases the GIL on every OpenCL call via ctypes; with ~60 capture/OCR/HTTP threads the default 5 ms
+  # switch interval made the inference thread wait up to 5 ms to get it back after each kernel launch
+  _sys.setswitchinterval(float(_os.environ.get("CLEARCAM_GIL_SWITCH", "0.0005")))
   database = db()
   cams = database.run_get("links", None)
   classes = {"0","1","2","3","5","7"} # person, bike, car, motorbike, bus, truck

@@ -374,7 +374,11 @@ class YOLOv9():
 
   def __call__(self, frame):
     pre = self.preprocess(frame)
-    x = pre.unsqueeze(0)
+    preds = self.forward(pre.unsqueeze(0))[0]
+    preds = self.scale_boxes(pre.shape[:2], preds, frame.shape)
+    return preds
+
+  def forward(self, x): # x: (B, H, W, 3) BGR, already letterboxed
     x = x[..., ::-1].permute(0, 3, 1, 2) #BGR to RGB!
     x = x / 255.0
     y = []  # outputs
@@ -383,9 +387,35 @@ class YOLOv9():
       if m.f != -1: x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
       x = m(x)
       y.append(x)
-    preds = postprocess(x[0])[0]
-    preds = self.scale_boxes(pre.shape[:2], preds, frame.shape)
-    return preds
+    return postprocess(x[0])
+
+  def detect_batch(self, frames, max_batch=8):
+    # letterbox on CPU, then one batched GPU call per letterboxed shape. batch sizes are padded to 1/2/4/8 to bound JIT variants
+    if not hasattr(self, "_batch_jit"): self._batch_jit = {}
+    pre = [self.letterbox_np(f) for f in frames]
+    groups = defaultdict(list)
+    for i, p in enumerate(pre): groups[p.shape].append(i)
+    out = [None] * len(frames)
+    for shape, idxs in groups.items():
+      for s in range(0, len(idxs), max_batch):
+        chunk = idxs[s:s + max_batch]
+        bucket = next(b for b in (1, 2, 4, 8, max_batch) if b >= len(chunk))
+        batch = np.stack([pre[i] for i in chunk] + [pre[chunk[0]]] * (bucket - len(chunk)))
+        key = (bucket,) + shape
+        if key not in self._batch_jit: self._batch_jit[key] = TinyJit(self.forward)
+        preds = self._batch_jit[key](Tensor(batch)).numpy()
+        for j, i in enumerate(chunk): out[i] = scale_boxes_np(shape[:2], preds[j], frames[i].shape)
+    return out
+
+  def letterbox_np(self, image, stride=32):
+    # numpy/cv2 equivalent of preprocess() with auto=True
+    h, w = image.shape[:2]
+    r = min(self.res / h, self.res / w)
+    new_w, new_h = int(round(w * r)), int(round(h * r))
+    dw, dh = np.mod(self.res - new_w, stride) / 2, np.mod(self.res - new_h, stride) / 2
+    if (new_w, new_h) != (w, h): image = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+    ph, pw = int(round(dh - 0.1)), int(round(dw - 0.1))
+    return cv2.copyMakeBorder(image, ph, ph, pw, pw, cv2.BORDER_CONSTANT, value=0)
 
   def preprocess(self, image, new_shape=None, auto=True, scaleFill=False, scaleup=True, stride=32) -> Tensor:
     if new_shape is None: new_shape = self.res
@@ -414,6 +444,15 @@ class YOLOv9():
       boxes = clip_boxes(boxes, img0_shape)
       predictions[:, :4] = boxes
       return predictions
+
+def scale_boxes_np(img1_shape, predictions, img0_shape):
+  gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])
+  pad_x = (img1_shape[1] - img0_shape[1] * gain) / 2
+  pad_y = (img1_shape[0] - img0_shape[0] * gain) / 2
+  predictions = predictions.copy()
+  predictions[:, [0, 2]] = ((predictions[:, [0, 2]] - pad_x) / gain).clip(0, img0_shape[1])
+  predictions[:, [1, 3]] = ((predictions[:, [1, 3]] - pad_y) / gain).clip(0, img0_shape[0])
+  return predictions
 
 def clip_boxes(boxes, shape):
     boxes[..., [0, 2]] = boxes[..., [0, 2]].clip(0, shape[1])
